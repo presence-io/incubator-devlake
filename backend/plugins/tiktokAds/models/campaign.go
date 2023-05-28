@@ -15,13 +15,13 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package archived
+package models
 
-import "github.com/apache/incubator-devlake/core/models/migrationscripts/archived"
+import "github.com/apache/incubator-devlake/core/models/common"
 
 type TiktokAdsCampaign struct {
 	ConnectionId    uint64  `json:"connection_id" gorm:"column:connection_id;primaryKey"`
-	ID              uint64  `gorm:"column:campaign_id;primaryKey;autoIncrement:false" json:"campaign_id,string"`
+	ID              uint64  `gorm:"column:campaign_id;primaryKey" json:"campaign_id,string"`
 	SecondaryStatus string  `gorm:"column:secondary_status" json:"secondary_status"`
 	Budget          float64 `gorm:"column:budget" json:"budget"`
 	DeepBidType     *string `gorm:"column:deep_bid_type" json:"deep_bid_type"`
@@ -36,7 +36,24 @@ type TiktokAdsCampaign struct {
 	Objective       string  `gorm:"column:objective" json:"objective"`
 	ModifyTime      string  `gorm:"column:modify_time" json:"modify_time"`
 	CreateTime      string  `gorm:"column:create_time" json:"create_time"`
-	archived.NoPKModel
+	common.NoPKModel
+}
+
+type CampaignResponse struct {
+	Code      int    `json:"code"`
+	Message   string `json:"message"`
+	RequestID string `json:"request_id"`
+	Data      struct {
+		List     []TiktokAdsCampaign `json:"list"`
+		PageInfo PageInfo            `json:"page_info"`
+	} `json:"data"`
+}
+
+type PageInfo struct {
+	TotalNumber int `json:"total_number"`
+	Page        int `json:"page"`
+	PageSize    int `json:"page_size"`
+	TotalPage   int `json:"total_page"`
 }
 
 func (TiktokAdsCampaign) TableName() string {

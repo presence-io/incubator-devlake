@@ -18,56 +18,28 @@ limitations under the License.
 package tasks
 
 import (
-	"fmt"
-	"net/http"
-	"strconv"
-	"time"
-
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
+	"github.com/apache/incubator-devlake/helpers/pluginhelper/api"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
 )
 
-func NewTiktokAdsApiClient(taskCtx plugin.TaskContext, connection *models.TiktokAdsConnection) (*api.ApiAsyncClient, errors.Error) {
-	// create synchronize api client so we can calculate api rate limit dynamically
-	headers := map[string]string{
-		"Authorization": fmt.Sprintf("Bearer %v", connection.Token),
-	}
-	apiClient, err := api.NewApiClient(taskCtx.GetContext(), connection.Endpoint, headers, 0, connection.Proxy, taskCtx)
-	if err != nil {
-		return nil, err
-	}
-	apiClient.SetAfterFunction(func(res *http.Response) errors.Error {
-		if res.StatusCode == http.StatusUnauthorized {
-			return errors.HttpStatus(res.StatusCode).New("authentication failed, please check your AccessToken")
-		}
-		return nil
-	})
+// const AUTH_ENDPOINT = "https://open.tiktokAds.cn"
+// const ENDPOINT = "https://open.tiktokAds.cn/open-apis/vc/v1"
 
-	// create rate limit calculator
-	rateLimiter := &api.ApiRateLimitCalculator{
-		UserRateLimitPerHour: connection.RateLimitPerHour,
-		DynamicRateLimit: func(res *http.Response) (int, time.Duration, errors.Error) {
-			rateLimitHeader := res.Header.Get("RateLimit-Limit")
-			if rateLimitHeader == "" {
-				// use default
-				return 0, 0, nil
-			}
-			rateLimit, err := strconv.Atoi(rateLimitHeader)
-			if err != nil {
-				return 0, 0, errors.Default.Wrap(err, "failed to parse RateLimit-Limit header")
-			}
-			// seems like {{ .plugin-ame }} rate limit is on minute basis
-			return rateLimit, 1 * time.Minute, nil
-		},
-	}
-	asyncApiClient, err := api.CreateAsyncApiClient(
-		taskCtx,
-		apiClient,
-		rateLimiter,
-	)
+func NewTiktokAdsApiClient(taskCtx plugin.TaskContext, connection *models.TiktokAdsConnection) (*api.ApiAsyncClient, errors.Error) {
+	apiClient, err := api.NewApiClientFromConnection(taskCtx.GetContext(), taskCtx, connection)
 	if err != nil {
 		return nil, err
 	}
-	return asyncApiClient, nil
+
+	// create async api client
+	asyncApiCLient, err := api.CreateAsyncApiClient(taskCtx, apiClient, &api.ApiRateLimitCalculator{
+		UserRateLimitPerHour: connection.RateLimitPerHour,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return asyncApiCLient, nil
 }

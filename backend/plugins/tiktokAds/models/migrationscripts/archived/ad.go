@@ -17,32 +17,24 @@ limitations under the License.
 
 package archived
 
-type AdResponse struct {
-	Code int `json:"code"`
-	Data struct {
-		AdIDs     []string `json:"ad_ids"`
-		Creatives []Ad     `json:"creatives"`
-		NeedAudit bool     `json:"need_audit"`
-	} `json:"data"`
-	Message   string `json:"message"`
-	RequestID string `json:"request_id"`
-}
+import "github.com/apache/incubator-devlake/core/models/migrationscripts/archived"
 
-type Ad struct {
-	Id                        string `gorm:"column:ad_id;primaryKey" json:"ad_id"`
+type TiktokAdsAd struct {
+	ConnectionId              uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey"`
+	Id                        uint64 `gorm:"column:ad_id;primaryKey" json:"ad_id,string"`
 	CreativeId                uint64 `gorm:"column:creative_id;primaryKey" json:"creative_id"`
 	AdFormat                  string `gorm:"column:ad_format" json:"ad_format"`
 	AdName                    string `gorm:"column:ad_name" json:"ad_name"`
 	AdText                    string `gorm:"column:ad_text" json:"ad_text"`
 	AdTexts                   []byte `gorm:"column:ad_texts" json:"ad_texts"`
-	AdGroupID                 string `gorm:"column:adgroup_id" json:"adgroup_id"`
+	AdGroupID                 uint64 `gorm:"column:adgroup_id" json:"adgroup_id,string"`
 	AdGroupName               string `gorm:"column:adgroup_name" json:"adgroup_name"`
 	AdvertiserID              string `gorm:"column:advertiser_id" json:"advertiser_id"`
 	AppName                   string `gorm:"column:app_name" json:"app_name"`
 	AvatarIconWebURI          string `gorm:"column:avatar_icon_web_uri" json:"avatar_icon_web_uri"`
 	CallToAction              string `gorm:"column:call_to_action" json:"call_to_action"`
 	CallToActionID            []byte `gorm:"column:call_to_action_id" json:"call_to_action_id"`
-	CampaignID                string `gorm:"column:campaign_id" json:"campaign_id"`
+	CampaignID                uint64 `gorm:"column:campaign_id" json:"campaign_id,string"`
 	CampaignName              string `gorm:"column:campaign_name" json:"campaign_name"`
 	CardID                    string `gorm:"column:card_id" json:"card_id"`
 	CatalogID                 string `gorm:"column:catalog_id" json:"catalog_id"`
@@ -78,8 +70,9 @@ type Ad struct {
 	VastMoatEnabled           bool   `gorm:"column:vast_moat_enabled" json:"vast_moat_enabled"`
 	VerticalVideoStrategy     string `gorm:"column:vertical_video_strategy" json:"vertical_video_strategy"`
 	VideoID                   []byte `gorm:"column:video_id" json:"video_id"`
+	archived.NoPKModel
 }
 
-func (Ad) TableName() string {
+func (TiktokAdsAd) TableName() string {
 	return "_tool_tiktokAds_ad"
 }

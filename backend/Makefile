@@ -50,11 +50,6 @@ build-worker:
 build-server: swag
 	go build -ldflags "-X 'github.com/apache/incubator-devlake/core/version.Version=$(VERSION)'" -o bin/lake ./server/
 
-build-python: #don't mix this with the other build commands
-	find ./python/ -name "*.sh" | xargs chmod +x &&\
-	sh python/build.sh
-	sh python/build.sh python/test
-
 build: build-plugin build-server
 
 all: build build-worker
@@ -69,7 +64,7 @@ run:
 worker:
 	go run worker/*.go
 
-dev: build-plugin build-python run
+dev: build-plugin run
 
 debug: build-plugin-debug
 	dlv debug server/main.go
@@ -85,13 +80,6 @@ unit-test: mock unit-test-only python-unit-test
 
 unit-test-only:
 	set -e; for m in $$(go list ./... | egrep -v 'test|models|e2e'); do echo $$m; go test -timeout 60s -v $$m; done
-
-build-pydevlake:
-	poetry install -C python/pydevlake
-
-python-unit-test: build-pydevlake
-	sh python/build.sh python/test &&\
-	sh ./python/run_tests.sh
 
 e2e-plugins-test:
 	export ENV_PATH=$(shell readlink -f .env); set -e; for m in $$(go list ./plugins/... | egrep 'e2e'); do echo $$m; go test -timeout 300s -gcflags=all=-l -v $$m; done

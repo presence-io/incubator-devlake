@@ -41,6 +41,7 @@ import { WebhookConfig } from './register/webook';
 import { ZenTaoConfig } from './register/zentao';
 import { TeambitionConfig } from './register/teambition';
 import { BasePipelineConfig } from '@/plugins/register/base';
+import { TIKTOK_ADSConfig } from '@/plugins/register/tiktokAds';
 
 export const PluginConfig: PluginConfigType[] = [
   AEConfig,
@@ -66,6 +67,7 @@ export const PluginConfig: PluginConfigType[] = [
   TeambitionConfig,
   ZenTaoConfig,
   WebhookConfig,
+  TIKTOK_ADSConfig,
 ].sort((a, b) => a.sort - b.sort);
 
 // get plugin config by plugin name

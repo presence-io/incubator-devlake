@@ -27,6 +27,8 @@ import { ConnectionProxy } from './proxy';
 import { ConnectionRateLimit } from './rate-limit';
 import { ConnectionAppId } from './app-id';
 import { ConnectionSecretKey } from './secret-key';
+import { ConnectionAuthCode } from '@/plugins/components/connection-form/fields/auth-code';
+import { ConnectionSecret } from '@/plugins/components/connection-form/fields/secret';
 
 interface Props {
   name: string;
@@ -82,6 +84,10 @@ export const Form = ({ name, fields, initialValues, values, errors, setValues, s
           return <ConnectionAppId key={key} {...getProps('appId')} {...field} />;
         case 'secretKey':
           return <ConnectionSecretKey key={key} {...getProps('secretKey')} {...field} />;
+        case 'secret':
+          return <ConnectionSecret key={key} {...getProps('secret')} {...field} />;
+        case 'authCode':
+          return <ConnectionAuthCode key={key} {...getProps('authCode')} {...field} />;
         case 'proxy':
           return <ConnectionProxy key={key} {...getProps('proxy')} {...field} />;
         case 'rateLimitPerHour':

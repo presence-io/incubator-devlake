@@ -38,10 +38,10 @@ func LoadPlugins(basicRes context.BasicRes) errors.Error {
 	if err != nil {
 		return err
 	}
-	err = LoadRemotePlugins(basicRes)
-	if err != nil {
-		return err
-	}
+	//err = LoadRemotePlugins(basicRes)
+	//if err != nil {
+	//	return err
+	//}
 	return nil
 }
 

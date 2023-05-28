@@ -18,12 +18,13 @@ limitations under the License.
 package tasks
 
 import (
-	"fmt"
 	"github.com/apache/incubator-devlake/core/errors"
 	helper "github.com/apache/incubator-devlake/helpers/pluginhelper/api"
 )
 
 type TiktokAdsApiParams struct {
+	ConnectionId uint64
+	AdvertiserId string
 }
 
 type TiktokAdsOptions struct {
@@ -31,15 +32,29 @@ type TiktokAdsOptions struct {
 	// options means some custom params required by plugin running.
 	// Such As How many rows do your want
 	// You can use it in subtasks, and you need to pass it to main.go and pipelines.
-    ConnectionId               uint64   `json:"connectionId"`
-    Tasks                      []string `json:"tasks,omitempty"`
-    CreatedDateAfter string   `json:"createdDateAfter" mapstructure:"createdDateAfter,omitempty"`
+	ConnectionId  uint64                   `json:"connectionId"`
+	Name          string                   `json:"name"`
+	Tasks         []string                 `json:"tasks,omitempty"`
+	AdvertiserID  string                   `json:"advertiserId"`
+	ServiceType   string                   `json:"service_type,omitempty"`
+	ReportType    string                   `json:"reportType"`
+	DataLevel     string                   `json:"data_level,omitempty"`
+	Dimensions    []string                 `json:"dimensions"`
+	Metrics       []string                 `json:"metrics,omitempty"`
+	StartDate     string                   `json:"start_date,omitempty"`
+	EndDate       string                   `json:"end_date,omitempty"`
+	QueryLifetime bool                     `json:"query_lifetime,omitempty"`
+	OrderField    string                   `json:"order_field,omitempty"`
+	OrderType     string                   `json:"order_type,omitempty"`
+	Filtering     []map[string]interface{} `json:"filtering,omitempty"`
+	QueryMode     string                   `json:"query_mode,omitempty"`
+
+	RuleLevel string `json:"rule_level,omitempty"`
 }
 
 type TiktokAdsTaskData struct {
 	Options   *TiktokAdsOptions
-	ApiClient *api.ApiAsyncClient
-	CreatedDateAfter *time.Time
+	ApiClient *helper.ApiAsyncClient
 }
 
 func DecodeAndValidateTaskOptions(options map[string]interface{}) (*TiktokAdsOptions, errors.Error) {
@@ -51,20 +66,4 @@ func DecodeAndValidateTaskOptions(options map[string]interface{}) (*TiktokAdsOpt
 		return nil, errors.Default.New("connectionId is invalid")
 	}
 	return &op, nil
-}
-
-func CreateRawDataSubTaskArgs(taskCtx plugin.SubTaskContext, rawTable string) (*api.RawDataSubTaskArgs, *TiktokAdsTaskData) {
-	data := taskCtx.GetData().(*TiktokAdsTaskData)
-	filteredData := *data
-	filteredData.Options = &TiktokAdsOptions{}
-	*filteredData.Options = *data.Options
-	var params = TiktokAdsApiParams{
-		ConnectionId: data.Options.ConnectionId,
-	}
-	rawDataSubTaskArgs := &api.RawDataSubTaskArgs{
-		Ctx:    taskCtx,
-		Params: params,
-		Table:  rawTable,
-	}
-	return rawDataSubTaskArgs, &filteredData
 }

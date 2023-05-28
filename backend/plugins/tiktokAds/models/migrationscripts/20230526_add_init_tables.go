@@ -20,7 +20,6 @@ package migrationscripts
 import (
 	"github.com/apache/incubator-devlake/core/context"
 	"github.com/apache/incubator-devlake/core/errors"
-	"github.com/apache/incubator-devlake/core/plugin"
 	"github.com/apache/incubator-devlake/helpers/migrationhelper"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models/migrationscripts/archived"
 )
@@ -29,41 +28,24 @@ type addInitTables struct {
 }
 
 func (u *addInitTables) Up(basicRes context.BasicRes) errors.Error {
-	db := basicRes.GetDal()
-
-	err := db.DropTables(
-		&archived.TiktokAdsConnection{},
-	)
-	if err != nil {
-		return err
-	}
-
-	err = migrationhelper.AutoMigrateTables(
+	basicRes.GetDal().DropTables(&archived.TiktokAdsRule{},
+		&archived.TiktokAdsRuleCondition{})
+	return migrationhelper.AutoMigrateTables(
 		basicRes,
-		&archived.TiktokAdsConnection{},
+		//archived.TiktokAdsConnection{},
+		&archived.TiktokAdsAd{},
+		&archived.TiktokAdsAdGroup{},
+		//&archived.TiktokAdsCampaign{},
+		&archived.TiktokAdsReport{},
+		&archived.TiktokAdsRule{},
+		&archived.TiktokAdsRuleCondition{},
+		&archived.TiktokAdsAdReport{},
+		&archived.TiktokAdsAdGroupReport{},
 	)
-	if err != nil {
-		return err
-	}
-
-	encodeKey := basicRes.GetConfig(plugin.EncodeKeyEnvStr)
-	connection := &archived.TiktokAdsConnection{}
-	connection.Endpoint = basicRes.GetConfig(`FEISHU_ENDPOINT`)
-	connection.AppId = basicRes.GetConfig(`FEISHU_APPID`)
-	connection.SecretKey = basicRes.GetConfig(`FEISHU_APPSCRECT`)
-	connection.Name = `TiktokAds`
-	if connection.Endpoint != `` && connection.AppId != `` && connection.SecretKey != `` && encodeKey != `` {
-		// update from .env and save to db
-		err = db.CreateIfNotExist(connection)
-		if err != nil {
-			return err
-		}
-	}
-	return nil
 }
 
 func (*addInitTables) Version() uint64 {
-	return 20220714000001
+	return 20230528000017
 }
 
 func (*addInitTables) Name() string {

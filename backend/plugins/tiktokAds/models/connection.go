@@ -19,8 +19,6 @@ package models
 
 import (
 	"fmt"
-	"net/http"
-
 	"github.com/apache/incubator-devlake/core/errors"
 	helper "github.com/apache/incubator-devlake/helpers/pluginhelper/api"
 	"github.com/apache/incubator-devlake/helpers/pluginhelper/api/apihelperabstract"
@@ -29,35 +27,12 @@ import (
 // TiktokAdsConn holds the essential information to connect to the TiktokAds API
 type TiktokAdsConn struct {
 	helper.RestConnection `mapstructure:",squash"`
-	helper.AppKey         `mapstructure:",squash"`
+	helper.AccessToken    `mapstructure:",squash"`
 }
 
 func (conn *TiktokAdsConn) PrepareApiClient(apiClient apihelperabstract.ApiClientAbstract) errors.Error {
-	// request for access token
-	tokenReqBody := &ApiAccessTokenRequest{
-		AppId:    conn.AppId,
-		Secret:   conn.SecretKey,
-		AuthCode: conn.AuthCode,
-	}
-	tokenRes, err := apiClient.Post("v1.3/oauth2/access_token/", nil, tokenReqBody, nil)
-	if err != nil {
-		return err
-	}
-
-	if tokenRes.StatusCode == http.StatusUnauthorized {
-		return errors.HttpStatus(http.StatusBadRequest).New("StatusUnauthorized error when get tenant_access_token")
-	}
-
-	tokenResBody := &ApiAccessTokenResponse{}
-	err = helper.UnmarshalResponse(tokenRes, tokenResBody)
-	if err != nil {
-		return err
-	}
-	if tokenResBody.AccessToken == "" {
-		return errors.Default.New("failed to request access token")
-	}
 	apiClient.SetHeaders(map[string]string{
-		"Authorization": fmt.Sprintf("Access-Token %v", tokenResBody.Data.AccessToken),
+		"Access-Token": fmt.Sprintf("%v", conn.Token),
 	})
 	return nil
 }

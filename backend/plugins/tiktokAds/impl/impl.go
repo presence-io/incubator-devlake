@@ -49,7 +49,7 @@ func (p TiktokAds) Init(basicRes context.BasicRes) errors.Error {
 func (p TiktokAds) GetTablesInfo() []dal.Tabler {
 	return []dal.Tabler{
 		&models.TiktokAdsConnection{},
-		&models.TiktokAdsMeetingTopUserItem{},
+		&models.TiktokAdsCampaign{},
 	}
 }
 
@@ -59,14 +59,27 @@ func (p TiktokAds) Description() string {
 
 func (p TiktokAds) SubTaskMetas() []plugin.SubTaskMeta {
 	return []plugin.SubTaskMeta{
-		tasks.CollectMeetingTopUserItemMeta,
-		tasks.ExtractMeetingTopUserItemMeta,
+		//tasks.CollectCampaignMeta,
+		//tasks.ExtractCampaignMeta,
+		//tasks.CollectAdGroupMeta,
+		//tasks.ExtractAdGroupMeta,
+		//tasks.CollectAdMeta,
+		//tasks.ExtractAdMeta,
+		//tasks.CollectReportMeta,
+		//tasks.ExtractReportMeta,
+		tasks.CollectAdGroupReportMeta,
+		tasks.CollectAdReportMeta,
+		tasks.ExtractAdGroupReportMeta,
+		tasks.ExtractAdReportMeta,
+		tasks.ExecuteAdRulesMeta,
+		tasks.ExecuteAdGroupRulesMeta,
 	}
 }
 
 func (p TiktokAds) PrepareTaskData(taskCtx plugin.TaskContext, options map[string]interface{}) (interface{}, errors.Error) {
-	var op tasks.TiktokAdsOptions
-	if err := helper.Decode(options, &op, nil); err != nil {
+	var op *tasks.TiktokAdsOptions
+	var err errors.Error
+	if op, err = tasks.DecodeAndValidateTaskOptions(options); err != nil {
 		return nil, err
 	}
 
@@ -75,7 +88,7 @@ func (p TiktokAds) PrepareTaskData(taskCtx plugin.TaskContext, options map[strin
 		nil,
 	)
 	connection := &models.TiktokAdsConnection{}
-	err := connectionHelper.FirstById(connection, op.ConnectionId)
+	err = connectionHelper.FirstById(connection, op.ConnectionId)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +98,7 @@ func (p TiktokAds) PrepareTaskData(taskCtx plugin.TaskContext, options map[strin
 		return nil, err
 	}
 	return &tasks.TiktokAdsTaskData{
-		Options:   &op,
+		Options:   op,
 		ApiClient: apiClient,
 	}, nil
 }
@@ -111,6 +124,9 @@ func (p TiktokAds) ApiResources() map[string]map[string]plugin.ApiResourceHandle
 			"PATCH":  api.PatchConnection,
 			"DELETE": api.DeleteConnection,
 			"GET":    api.GetConnection,
+		},
+		"rules": {
+			"POST": api.PostRule,
 		},
 	}
 }

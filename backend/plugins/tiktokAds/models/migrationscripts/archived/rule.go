@@ -21,15 +21,34 @@ import (
 	"github.com/apache/incubator-devlake/core/models/migrationscripts/archived"
 )
 
-type TiktokAdsConnection struct {
+type TiktokAdsRule struct {
 	archived.Model
-	Name             string `gorm:"type:varchar(100);uniqueIndex" json:"name" validate:"required"`
-	Endpoint         string `gorm:"type:varchar(255)"`
-	Proxy            string `json:"proxy" gorm:"type:varchar(255)"`
-	RateLimitPerHour int    `comment:"api request rate limit per hour"`
-	Token            string `gorm:"type:varchar(255)" json:"token" validate:"required"`
+	ConnectionId   uint64 `json:"connection_id" gorm:"column:connection_id;autoIncrement:false;primaryKey"`
+	Name           string `json:"name" gorm:"column:name"`
+	CampaignId     uint64 `json:"campaign_id,string" gorm:"column:campaign_id"`
+	AdgroupId      uint64 `json:"adgroup_id" gorm:"column:adgroup_id"`
+	AdId           uint64 `json:"ad_id" gorm:"column:ad_id"`
+	Status         int
+	Operate        string
+	BudgetToRevise float64
+	DataLevel      string
 }
 
-func (TiktokAdsConnection) TableName() string {
-	return "_tool_tiktokAds_connections"
+type TiktokAdsRuleCondition struct {
+	ID         uint64 `gorm:"primaryKey"`
+	RuleID     uint64
+	FieldName  string
+	Operator   string
+	FieldValue float64
+	TimeRange  uint64 //hours
+	IsEnable   bool
+	archived.Model
+}
+
+func (TiktokAdsRule) TableName() string {
+	return "_tool_tiktokAds_rule"
+}
+
+func (TiktokAdsRuleCondition) TableName() string {
+	return "_tool_tiktokAds_rule_condition"
 }

@@ -51,6 +51,8 @@ export const Test = ({ plugin, values, errors }: Props) => {
             'authMethod',
             'appId',
             'secretKey',
+            'secret',
+            'authCode',
             'tenantId',
             'tenantType',
           ]),

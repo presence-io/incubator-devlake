@@ -81,12 +81,12 @@ func NewApiClientFromConnection(
 		}
 	}
 
-	// if connection requires authorization
-	if authenticator, ok := connection.(aha.ApiAuthenticator); ok {
-		apiClient.SetBeforeFunction(func(req *http.Request) errors.Error {
-			return authenticator.SetupAuthentication(req)
-		})
-	}
+	//// if connection requires authorization
+	//if authenticator, ok := connection.(aha.ApiAuthenticator); ok {
+	//	apiClient.SetBeforeFunction(func(req *http.Request) errors.Error {
+	//		return authenticator.SetupAuthentication(req)
+	//	})
+	//}
 
 	return apiClient, nil
 }
@@ -144,14 +144,14 @@ func NewApiClient(
 		if err != nil {
 			return nil, errors.Default.Wrap(err, "Failed to resolve DNS")
 		}
-		port, err := utils.ResolvePort(parsedUrl.Port(), parsedUrl.Scheme)
+		_, err = utils.ResolvePort(parsedUrl.Port(), parsedUrl.Scheme)
 		if err != nil {
 			return nil, errors.Default.New("Failed to resolve Port")
 		}
-		err = utils.CheckNetwork(parsedUrl.Hostname(), port, 10*time.Second)
-		if err != nil {
-			return nil, errors.Default.Wrap(err, "Failed to connect")
-		}
+		//err = utils.CheckNetwork(parsedUrl.Hostname(), port, 10*time.Second)
+		//if err != nil {
+		//	return nil, errors.Default.Wrap(err, "Failed to connect")
+		//}
 	}
 	apiClient.SetContext(ctx)
 
@@ -296,11 +296,11 @@ func (apiClient *ApiClient) Do(
 		reqBody = bytes.NewBuffer(reqJson)
 	}
 	var req *http.Request
-	if apiClient.ctx != nil {
-		req, err = errors.Convert01(http.NewRequestWithContext(apiClient.ctx, method, *uri, reqBody))
-	} else {
-		req, err = errors.Convert01(http.NewRequest(method, *uri, reqBody))
-	}
+	//if apiClient.ctx != nil {
+	//	req, err = errors.Convert01(http.NewRequestWithContext(apiClient.ctx, method, *uri, reqBody))
+	//} else {
+	req, err = errors.Convert01(http.NewRequest(method, *uri, reqBody))
+	//}
 	if err != nil {
 		return nil, errors.Default.Wrap(err, fmt.Sprintf("unable to create API request for %s", *uri))
 	}
@@ -327,7 +327,14 @@ func (apiClient *ApiClient) Do(
 		}
 	}
 	apiClient.logDebug("[api-client] %v %v", method, *uri)
-	res, err = errors.Convert01(apiClient.client.Do(req))
+	client := &http.Client{}
+	apiClient.client = client
+	res, err1 := apiClient.client.Do(req)
+	if err1 != nil {
+		fmt.Println(err)
+		//return
+	}
+	//res, err = errors.Convert01(apiClient.client.Do(req))
 	if err != nil {
 		apiClient.logError(err, "[api-client] failed to request %s with error", req.URL.String())
 		return nil, errors.Default.Wrap(err, fmt.Sprintf("error requesting %s", req.URL.String()))
@@ -412,7 +419,16 @@ func GetURIStringPointer(baseUrl string, relativePath string, query url.Values) 
 	if query != nil {
 		queryString := u.Query()
 		for key, value := range query {
-			queryString.Set(key, strings.Join(value, ""))
+			valueString := ""
+			if len(value) > 1 {
+				valueString = fmt.Sprintf(`["%s"]`, strings.Join(value, `","`))
+			} else {
+				valueString = strings.Join(value, "")
+			}
+			if len(valueString) == 0 {
+				continue
+			}
+			queryString.Set(key, valueString)
 		}
 
 		u.RawQuery = queryString.Encode()

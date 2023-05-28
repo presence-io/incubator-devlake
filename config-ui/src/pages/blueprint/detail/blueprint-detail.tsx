@@ -75,6 +75,11 @@ export const BlueprintDetail = ({ from = FromEnum.project, pname, id }: Props) =
           title="Configuration"
           panel={<Configuration paths={paths} blueprint={blueprint} operating={operating} onUpdate={onUpdate} />}
         />
+        {/*<Tab*/}
+        {/*  id="report"*/}
+        {/*  title="Report"*/}
+        {/*  panel={<Report paths={paths} blueprint={blueprint} operating={operating} onUpdate={onUpdate} />}*/}
+        {/*/>*/}
       </Tabs>
       {showJenkinsTips && (
         <S.JenkinsTips>

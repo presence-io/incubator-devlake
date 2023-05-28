@@ -1,5 +1,0 @@
-# runtime dependencies
-setuptools
-wheel
-dbt-mysql
-dbt-postgres
