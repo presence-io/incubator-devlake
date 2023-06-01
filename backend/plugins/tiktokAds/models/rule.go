@@ -24,14 +24,17 @@ import (
 type TiktokAdsRule struct {
 	ConnectionId uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey;autoIncrement:false" mapstructure:"connection_id"`
 	common.Model
-	Name           string  `json:"name" gorm:"column:name" mapstructure:"name"`
-	CampaignId     uint64  `json:"campaign_id" gorm:"column:campaign_id" mapstructure:"campaign_id"`
-	AdgroupId      uint64  `json:"adgroup_id" gorm:"column:adgroup_id" mapstructure:"adgroup_id"`
-	AdId           uint64  `json:"ad_id" gorm:"column:ad_id" mapstructure:"ad_id"`
-	Status         int     `json:"status" mapstructure:"status"`
-	Operate        string  `json:"operate" mapstructure:"operate"`
-	BudgetToRevise float64 `json:"budget_to_revise" mapstructure:"budget_to_revise"`
-	DataLevel      string  `json:"data_level" mapstructure:"data_level"`
+	Name          string  `json:"name" gorm:"column:name" mapstructure:"name"`
+	CampaignId    uint64  `json:"campaign_id" gorm:"column:campaign_id" mapstructure:"campaign_id"`
+	AdgroupId     uint64  `json:"adgroup_id" gorm:"column:adgroup_id" mapstructure:"adgroup_id"`
+	AdId          uint64  `json:"ad_id" gorm:"column:ad_id" mapstructure:"ad_id"`
+	Status        int     `json:"status" mapstructure:"status"`
+	Operate       string  `json:"operate" mapstructure:"operate"`
+	FieldToRevise string  `json:"field_to_revise" mapstructure:"field_to_revise"`
+	ValueToRevise float64 `json:"value_to_revise" mapstructure:"value_to_revise"`
+	DataLevel     string  `json:"data_level" mapstructure:"data_level"`
+	AdGroupIds    string  `json:"adgroup_ids" mapstructure:"adgroup_ids"`
+	AdIds         string  `json:"ad_ids" mapstructure:"ad_ids"`
 }
 
 type TiktokAdsRuleCondition struct {
@@ -47,27 +50,35 @@ type TiktokAdsRuleCondition struct {
 type TiktokAdsRuleRequest struct {
 	ConnectionId uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey;autoIncrement:false" mapstructure:"connection_id"`
 	common.Model
-	Name           string                    `json:"name" gorm:"column:name" mapstructure:"name"`
-	CampaignId     uint64                    `json:"campaign_id" gorm:"column:campaign_id" mapstructure:"campaign_id"`
-	AdgroupId      uint64                    `json:"adgroup_id" gorm:"column:adgroup_id" mapstructure:"adgroup_id"`
-	AdId           uint64                    `json:"ad_id" gorm:"column:ad_id"mapstructure:"ad_id"`
-	Status         int                       `json:"status" mapstructure:"status"`
-	Operate        string                    `json:"operate" mapstructure:"operate"`
-	BudgetToRevise float64                   `json:"budget_to_revise" mapstructure:"budget_to_revise"`
-	DataLevel      string                    `json:"data_level" mapstructure:"data_level"`
-	Conditions     []*TiktokAdsRuleCondition `json:"conditions" mapstructure:"conditions"`
+	Name          string                    `json:"name" gorm:"column:name" mapstructure:"name"`
+	CampaignId    uint64                    `json:"campaign_id" gorm:"column:campaign_id" mapstructure:"campaign_id"`
+	AdgroupId     uint64                    `json:"adgroup_id" gorm:"column:adgroup_id" mapstructure:"adgroup_id"`
+	AdId          uint64                    `json:"ad_id" gorm:"column:ad_id"mapstructure:"ad_id"`
+	Status        int                       `json:"status" mapstructure:"status"`
+	Operate       string                    `json:"operate" mapstructure:"operate"`
+	FieldToRevise string                    `json:"field_to_revise" mapstructure:"field_to_revise"`
+	ValueToRevise float64                   `json:"value_to_revise" mapstructure:"value_to_revise"`
+	DataLevel     string                    `json:"data_level" mapstructure:"data_level"`
+	AdGroupIds    []string                  `json:"adgroup_ids" mapstructure:"adgroup_ids"`
+	AdIds         []string                  `json:"ad_ids" mapstructure:"ad_ids"`
+	Conditions    []*TiktokAdsRuleCondition `json:"conditions" mapstructure:"conditions"`
 }
 
 const (
-	MODIFY_BUDGET = "MODIFY_BUDGET"
-	ENABLE        = "ENABLE"
-	DISABLE       = "DISABLE"
+	MODIFY  = "MODIFY"
+	ENABLE  = "ENABLE"
+	DISABLE = "DISABLE"
 )
 
 const (
 	Active = iota
 	InActive
 	Delete
+)
+
+const (
+	COST_CAP    = "Cost Cap"
+	LOWEST_COST = "Lowest cost"
 )
 
 func (TiktokAdsRule) TableName() string {

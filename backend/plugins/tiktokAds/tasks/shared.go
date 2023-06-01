@@ -25,7 +25,7 @@ import (
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
 	"io"
 	"net/http"
-	"strings"
+	"strconv"
 )
 
 //func CreateRawDataSubTaskArgs(taskCtx plugin.SubTaskContext, rawTable string) (*api.RawDataSubTaskArgs, *TiktokAdsTaskData) {
@@ -68,45 +68,58 @@ func GetTotalPages(res *http.Response, args *api.ApiCollectorArgs) (int, errors.
 		return 0, err
 	}
 	return data.Data.PageInfo.TotalPage, nil
-
 }
 
 func prepareUpdate(recordType string, recordIds []uint64, data *TiktokAdsTaskData, operate string) {
 	count := 0
-	payloadRecordsString := `["`
+	recordsQuery := make([]string, 0)
+	length := len(recordIds)
+	idsFieldName := fmt.Sprintf("%s_ids", recordType)
 	for _, recordId := range recordIds {
-		payloadRecordsString += fmt.Sprintf(`%d",`, recordId)
 		count++
-		if count%20 == 0 {
-			payloadRecordsString = payloadRecordsString + `"]`
-			payload := strings.NewReader(fmt.Sprintf(`{
-					"advertiser_id": %s,
-					"adgroup_ids": %s,
-					"operation_status": %s
-				}`, data.Options.AdvertiserID, payloadRecordsString, operate))
+		recordsQuery = append(recordsQuery, fmt.Sprintf("%d", recordId))
+		if count%20 == 0 || count == length {
+			payload := map[string]interface{}{
+				"advertiser_id":    data.Options.AdvertiserID,
+				idsFieldName:       recordsQuery,
+				"operation_status": operate,
+			}
 			updateStatus(recordType+"/status", payload, data.ApiClient)
-			payloadRecordsString = `["`
+			recordsQuery = make([]string, 0)
 		}
 	}
 }
 
-func modifyBudget(modifyBudgetMap map[models.TiktokAdsRule]models.TiktokAdsAdGroupReport, data *TiktokAdsTaskData) {
-	for rule, budget := range modifyBudgetMap {
-		payload := strings.NewReader(fmt.Sprintf(`{
-    "advertiser_id": %s,
-    "budget": [
-        {
-            "adgroup_id": %d,
-            "budget": %f
-        }
-    ]
-}`, data.Options.AdvertiserID, budget.AdgroupId, budget.Budget+rule.BudgetToRevise))
-
-		updateStatus("adgroup/budget", payload, data.ApiClient)
+func modifyField(modifyBudgetMap map[models.TiktokAdsRule][]models.TiktokAdsAdGroupReport, data *TiktokAdsTaskData) {
+	for rule, elems := range modifyBudgetMap {
+		for _, elem := range elems {
+			valueToRevise := 0.0
+			rate := 1 + rule.ValueToRevise
+			payload := map[string]interface{}{
+				"advertiser_id": data.Options.AdvertiserID,
+				"adgroup_id":    strconv.FormatUint(elem.AdgroupId, 10),
+			}
+			switch rule.FieldToRevise {
+			case "budget":
+				valueToRevise = elem.Budget * rate
+			case "conversion_bid_price":
+				if elem.Bid == "-" {
+					break
+				}
+				bid, err := strconv.ParseFloat(elem.Bid, 64)
+				if err != nil {
+					fmt.Println(err)
+					return
+				}
+				valueToRevise = bid * rate
+			}
+			payload[rule.FieldToRevise] = valueToRevise
+			updateStatus("adgroup", payload, data.ApiClient)
+		}
 	}
 }
 
-func updateStatus(recordType string, payload *strings.Reader, apiClient *api.ApiAsyncClient) {
+func updateStatus(recordType string, payload map[string]interface{}, apiClient *api.ApiAsyncClient) {
 	url := fmt.Sprintf("https://ads.tiktok.com/open_api/v1.3/%s/update/", recordType)
 	res, err := apiClient.Post(url, nil, payload, nil)
 	if err != nil {

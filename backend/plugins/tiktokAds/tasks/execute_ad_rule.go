@@ -35,7 +35,7 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 	rules := make([]*models.TiktokAdsRule, 0)
 	clauses := []dal.Clause{
 		dal.From(&models.TiktokAdsRule{}),
-		dal.Where("connection_id = ? and data_level = ? ", data.Options.ConnectionId, "ad"),
+		dal.Where("connection_id = ? and data_level = ? and status = ?", data.Options.ConnectionId, "ad", models.Active),
 	}
 	err := db.All(&rules, clauses...)
 	if err != nil {
@@ -83,7 +83,7 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 			if rule.Operate == models.DISABLE && adReport.OptStatus == models.InActive {
 				continue
 			}
-			if calculateRule(rule, conditions, adReportValueMap) {
+			if calculateRule(conditions, adReportValueMap) {
 				switch rule.Operate {
 				case models.ENABLE:
 					enableAd = append(enableAd, adReport.AdId)
@@ -94,8 +94,12 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 			}
 		}
 	}
-	prepareUpdate("ad", enableAd, data, models.ENABLE)
-	prepareUpdate("ad", disableAd, data, models.DISABLE)
+	if len(enableAd) > 0 {
+		prepareUpdate("adgroup", enableAd, data, models.ENABLE)
+	}
+	if len(disableAd) > 0 {
+		prepareUpdate("adgroup", disableAd, data, models.DISABLE)
+	}
 	if err != nil {
 		return errors.Convert(err)
 	}
@@ -110,14 +114,20 @@ var ExecuteAdRulesMeta = plugin.SubTaskMeta{
 	DomainTypes:      []string{},
 }
 
-func calculateRule(rule models.TiktokAdsRule, conditions []*models.TiktokAdsRuleCondition, reportValueMap map[string]interface{}) bool {
+func calculateRule(conditions []*models.TiktokAdsRuleCondition, reportValueMap map[string]interface{}) bool {
 	for _, condition := range conditions {
 		var float64Value float64
-		// check if adReportMap[condition.FieldName] can be converted to float64
-		if _, ok := reportValueMap[condition.FieldName].(float64); !ok {
-			// 需要确认是否需要继续
+		// 如果report里面不包含condition里面的字段，那么就直接返回false
+		if value, ok := reportValueMap[condition.FieldName]; !ok {
+			return false
 		} else {
-			float64Value = reportValueMap[condition.FieldName].(float64)
+			if finalValue, ok := value.(float64); ok {
+				float64Value = finalValue
+			} else if intValue, ok := value.(int); ok {
+				float64Value = float64(intValue) // 将 int 转换为 float64
+			} else {
+				return false
+			}
 		}
 		switch condition.Operator {
 		case ">":

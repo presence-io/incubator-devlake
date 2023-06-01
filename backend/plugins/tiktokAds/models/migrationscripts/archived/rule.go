@@ -23,15 +23,18 @@ import (
 
 type TiktokAdsRule struct {
 	archived.Model
-	ConnectionId   uint64 `json:"connection_id" gorm:"column:connection_id;autoIncrement:false;primaryKey"`
-	Name           string `json:"name" gorm:"column:name"`
-	CampaignId     uint64 `json:"campaign_id,string" gorm:"column:campaign_id"`
-	AdgroupId      uint64 `json:"adgroup_id" gorm:"column:adgroup_id"`
-	AdId           uint64 `json:"ad_id" gorm:"column:ad_id"`
-	Status         int
-	Operate        string
-	BudgetToRevise float64
-	DataLevel      string
+	ConnectionId  uint64 `json:"connection_id" gorm:"column:connection_id;autoIncrement:false;primaryKey"`
+	Name          string `json:"name" gorm:"column:name"`
+	CampaignId    uint64 `json:"campaign_id,string" gorm:"column:campaign_id"`
+	AdgroupId     uint64 `json:"adgroup_id" gorm:"column:adgroup_id"`
+	AdId          uint64 `json:"ad_id" gorm:"column:ad_id"`
+	Status        int
+	Operate       string
+	FieldToRevise string  `json:"field_to_revise" mapstructure:"field_to_revise"`
+	ValueToRevise float64 `json:"value_to_revise" mapstructure:"value_to_revise"`
+	DataLevel     string
+	AdGroupIds    string `json:"adgroup_ids" mapstructure:"adgroup_ids"`
+	AdIds         string `json:"ad_ids" mapstructure:"ad_ids"`
 }
 
 type TiktokAdsRuleCondition struct {

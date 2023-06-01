@@ -61,17 +61,17 @@ func (p TiktokAds) SubTaskMetas() []plugin.SubTaskMeta {
 	return []plugin.SubTaskMeta{
 		//tasks.CollectCampaignMeta,
 		//tasks.ExtractCampaignMeta,
-		//tasks.CollectAdGroupMeta,
-		//tasks.ExtractAdGroupMeta,
+		tasks.CollectAdGroupMeta,
+		tasks.ExtractAdGroupMeta,
 		//tasks.CollectAdMeta,
 		//tasks.ExtractAdMeta,
 		//tasks.CollectReportMeta,
 		//tasks.ExtractReportMeta,
 		tasks.CollectAdGroupReportMeta,
-		tasks.CollectAdReportMeta,
+		//tasks.CollectAdReportMeta,
 		tasks.ExtractAdGroupReportMeta,
-		tasks.ExtractAdReportMeta,
-		tasks.ExecuteAdRulesMeta,
+		//tasks.ExtractAdReportMeta,
+		//tasks.ExecuteAdRulesMeta,
 		tasks.ExecuteAdGroupRulesMeta,
 	}
 }

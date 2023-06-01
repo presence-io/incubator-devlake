@@ -45,7 +45,7 @@ func (u *addInitTables) Up(basicRes context.BasicRes) errors.Error {
 }
 
 func (*addInitTables) Version() uint64 {
-	return 20230528000017
+	return 20230528000018
 }
 
 func (*addInitTables) Name() string {

@@ -25,6 +25,7 @@ import (
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
 	"github.com/apache/incubator-devlake/server/api/shared"
 	"net/http"
+	"strings"
 )
 
 type TiktokAdsTestConnResponse struct {
@@ -159,15 +160,20 @@ func PostRule(input *plugin.ApiResourceInput) (*plugin.ApiResourceOutput, errors
 		return nil, err
 	}
 	dbRule := models.TiktokAdsRule{
-		ConnectionId:   rule.ConnectionId,
-		Name:           rule.Name,
-		CampaignId:     rule.CampaignId,
-		AdgroupId:      rule.AdgroupId,
-		AdId:           rule.AdId,
-		Status:         rule.Status,
-		Operate:        rule.Operate,
-		BudgetToRevise: rule.BudgetToRevise,
-		DataLevel:      rule.DataLevel,
+		ConnectionId:  rule.ConnectionId,
+		Name:          rule.Name,
+		CampaignId:    rule.CampaignId,
+		AdgroupId:     rule.AdgroupId,
+		AdId:          rule.AdId,
+		Status:        rule.Status,
+		Operate:       rule.Operate,
+		FieldToRevise: rule.FieldToRevise,
+		ValueToRevise: rule.ValueToRevise,
+		DataLevel:     rule.DataLevel,
+		AdGroupIds:    strings.Join(rule.AdGroupIds, "|"),
+	}
+	if rule.ID != 0 {
+		dbRule.ID = rule.ID
 	}
 	err = tiktokAdsRuleHelper.db.Create(&dbRule)
 	if err != nil {
@@ -175,7 +181,7 @@ func PostRule(input *plugin.ApiResourceInput) (*plugin.ApiResourceOutput, errors
 	}
 	for _, condition := range rule.Conditions {
 		condition.RuleID = dbRule.ID
-		err = tiktokAdsRuleHelper.db.Create(condition)
+		err = tiktokAdsRuleHelper.db.CreateOrUpdate(condition)
 		if err != nil {
 			return nil, err
 		}

@@ -23,6 +23,7 @@ import (
 	"github.com/apache/incubator-devlake/core/plugin"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
 	"github.com/mitchellh/mapstructure"
+	"strings"
 	"time"
 )
 
@@ -35,7 +36,8 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 	rules := make([]*models.TiktokAdsRule, 0)
 	clauses := []dal.Clause{
 		dal.From(&models.TiktokAdsRule{}),
-		dal.Where("connection_id = ? and data_level = ? ", data.Options.ConnectionId, "ad_group"),
+		dal.Where("connection_id = ? and data_level = ? and status = ? and id in (?)",
+			data.Options.ConnectionId, "adgroup", models.Active, data.Options.RuleIds),
 	}
 	err := db.All(&rules, clauses...)
 	if err != nil {
@@ -44,7 +46,8 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 	ruleConditionMap := make(map[models.TiktokAdsRule][]*models.TiktokAdsRuleCondition)
 	enableAdGroup := make([]uint64, 0)
 	disableAdGroup := make([]uint64, 0)
-	reviseAdGroupBudget := make(map[models.TiktokAdsRule]models.TiktokAdsAdGroupReport)
+	reviseAdGroupModify := make(map[models.TiktokAdsRule][]models.TiktokAdsAdGroupReport)
+	adGroupReports := make([]*models.TiktokAdsAdGroupReport, 0)
 
 	for _, rule := range rules {
 		conditionClauses := []dal.Clause{
@@ -57,16 +60,16 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 			return errors.Convert(err)
 		}
 		ruleConditionMap[*rule] = conditions
-	}
 
-	adGroupReports := make([]*models.TiktokAdsAdGroupReport, 0)
-	adGroupReportClauses := []dal.Clause{
-		dal.From(&models.TiktokAdsAdGroupReport{}),
-		dal.Where("connection_id = ? and stat_time_day = ?", data.Options.ConnectionId, now.Format("2006-01-02")),
-	}
-	err = db.All(&adGroupReports, adGroupReportClauses...)
-	if err != nil {
-		return errors.Convert(err)
+		adGroupIds := strings.Split(rule.AdGroupIds, "|")
+		adGroupReportClauses := []dal.Clause{
+			dal.From(&models.TiktokAdsAdGroupReport{}),
+			dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id in (?)", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00"), adGroupIds),
+		}
+		err = db.All(&adGroupReports, adGroupReportClauses...)
+		if err != nil {
+			return errors.Convert(err)
+		}
 	}
 	for _, adGroupReport := range adGroupReports {
 		if adGroupReport.OptStatus == models.Delete {
@@ -74,7 +77,7 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 		}
 		// convert adReport to a map
 		reportValueMap := make(map[string]interface{})
-		err = errors.Convert(mapstructure.Decode(&adGroupReport.TiktokAdsReportCommon, reportValueMap))
+		err = errors.Convert(mapstructure.Decode(&adGroupReport.TiktokAdsReportCommon, &reportValueMap))
 		if err != nil {
 			return errors.Convert(err)
 		}
@@ -85,23 +88,32 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 			if rule.Operate == models.DISABLE && adGroupReport.OptStatus == models.InActive {
 				continue
 			}
-			if calculateRule(rule, conditions, reportValueMap) {
+			// 如果bid strategy 不是 Cost Cap，就不能调整出价
+			if rule.Operate == models.MODIFY && rule.FieldToRevise == "conversion_bid_price" && adGroupReport.BidStrategy != models.COST_CAP {
+				continue
+			}
+			if calculateRule(conditions, reportValueMap) {
 				switch rule.Operate {
 				case models.ENABLE:
 					enableAdGroup = append(enableAdGroup, adGroupReport.AdgroupId)
 				case models.DISABLE:
 					disableAdGroup = append(disableAdGroup, adGroupReport.AdgroupId)
-				case models.MODIFY_BUDGET:
-					reviseAdGroupBudget[rule] = *adGroupReport
+				case models.MODIFY:
+					reviseAdGroupModify[rule] = append(reviseAdGroupModify[rule], *adGroupReport)
 				}
 
 			}
 		}
 	}
-
-	prepareUpdate("adgroup", enableAdGroup, data, models.ENABLE)
-	prepareUpdate("adgroup", disableAdGroup, data, models.DISABLE)
-	modifyBudget(reviseAdGroupBudget, data)
+	if len(enableAdGroup) > 0 {
+		prepareUpdate("adgroup", enableAdGroup, data, models.ENABLE)
+	}
+	if len(disableAdGroup) > 0 {
+		prepareUpdate("adgroup", disableAdGroup, data, models.DISABLE)
+	}
+	if len(reviseAdGroupModify) > 0 {
+		modifyField(reviseAdGroupModify, data)
+	}
 
 	if err != nil {
 		return errors.Convert(err)

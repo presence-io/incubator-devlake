@@ -48,8 +48,8 @@ type TiktokAdsOptions struct {
 	OrderType     string                   `json:"order_type,omitempty"`
 	Filtering     []map[string]interface{} `json:"filtering,omitempty"`
 	QueryMode     string                   `json:"query_mode,omitempty"`
-
-	RuleLevel string `json:"rule_level,omitempty"`
+	RuleLevel     string                   `json:"rule_level,omitempty"`
+	RuleIds       []uint64                 `json:"rule_ids,omitempty"`
 }
 
 type TiktokAdsTaskData struct {
