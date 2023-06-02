@@ -19,6 +19,8 @@ package api
 
 import (
 	"context"
+	"fmt"
+	"github.com/apache/incubator-devlake/core/dal"
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
 	"github.com/apache/incubator-devlake/helpers/pluginhelper/api"
@@ -175,10 +177,12 @@ func PostRule(input *plugin.ApiResourceInput) (*plugin.ApiResourceOutput, errors
 	if rule.ID != 0 {
 		dbRule.ID = rule.ID
 	}
-	err = tiktokAdsRuleHelper.db.Create(&dbRule)
+	fmt.Print(dbRule)
+	err = tiktokAdsRuleHelper.db.CreateOrUpdate(&dbRule)
 	if err != nil {
 		return nil, err
 	}
+	err = tiktokAdsRuleHelper.db.Delete(&models.TiktokAdsRuleCondition{}, dal.Where("rule_id = ?", dbRule.ID))
 	for _, condition := range rule.Conditions {
 		condition.RuleID = dbRule.ID
 		err = tiktokAdsRuleHelper.db.CreateOrUpdate(condition)
@@ -186,7 +190,6 @@ func PostRule(input *plugin.ApiResourceInput) (*plugin.ApiResourceOutput, errors
 			return nil, err
 		}
 	}
-	rule.Model = dbRule.Model
 
 	return &plugin.ApiResourceOutput{Body: rule, Status: http.StatusOK}, nil
 }

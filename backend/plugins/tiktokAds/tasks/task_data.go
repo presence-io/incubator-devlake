@@ -25,6 +25,7 @@ import (
 type TiktokAdsApiParams struct {
 	ConnectionId uint64
 	AdvertiserId string
+	StatTimeDate string
 }
 
 type TiktokAdsOptions struct {
@@ -50,6 +51,7 @@ type TiktokAdsOptions struct {
 	QueryMode     string                   `json:"query_mode,omitempty"`
 	RuleLevel     string                   `json:"rule_level,omitempty"`
 	RuleIds       []uint64                 `json:"rule_ids,omitempty"`
+	AdGroupIds    []string                 `json:"ad_group_id,omitempty"`
 }
 
 type TiktokAdsTaskData struct {

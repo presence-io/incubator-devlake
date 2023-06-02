@@ -38,13 +38,15 @@ type TiktokAdsRule struct {
 }
 
 type TiktokAdsRuleCondition struct {
-	ID         uint64 `gorm:"primaryKey"`
-	RuleID     uint64
-	FieldName  string
-	Operator   string
-	FieldValue float64
-	TimeRange  uint64 //hours
-	IsEnable   bool
+	ID                uint64 `gorm:"primaryKey"`
+	RuleID            uint64
+	FieldName         string
+	FieldRelationName string  `json:"field_relation_name" mapstructure:"field_relation_name"`
+	Operator          string  `json:"operator" mapstructure:"operator"`
+	FieldValue        float64 `json:"field_value" mapstructure:"field_value"`
+	FieldRelationRate float64 `json:"field_relation_rate" mapstructure:"field_relation_rate"`
+	TimeRange         uint64  //hours
+	IsEnable          bool
 	archived.Model
 }
 

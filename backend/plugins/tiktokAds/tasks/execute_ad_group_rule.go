@@ -18,6 +18,7 @@ limitations under the License.
 package tasks
 
 import (
+	"fmt"
 	"github.com/apache/incubator-devlake/core/dal"
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
@@ -32,6 +33,7 @@ var _ plugin.SubTaskEntryPoint = ExecuteAdGroupRules
 func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 	data := taskCtx.GetData().(*TiktokAdsTaskData)
 	db := taskCtx.GetDal()
+	logger := taskCtx.GetLogger()
 	now := time.Now() // 获取当前时间
 	rules := make([]*models.TiktokAdsRule, 0)
 	clauses := []dal.Clause{
@@ -61,27 +63,31 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 		}
 		ruleConditionMap[*rule] = conditions
 
-		adGroupIds := strings.Split(rule.AdGroupIds, "|")
 		adGroupReportClauses := []dal.Clause{
 			dal.From(&models.TiktokAdsAdGroupReport{}),
-			dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id in (?)", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00"), adGroupIds),
+		}
+		if len(rule.AdGroupIds) > 0 && rule.AdGroupIds != "[]" {
+			adGroupIds := strings.Split(rule.AdGroupIds, "|")
+			adGroupReportClauses = append(adGroupReportClauses, dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id in (?)", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00"), adGroupIds))
+		} else {
+			adGroupReportClauses = append(adGroupReportClauses, dal.Where("connection_id = ? and stat_time_day = ?", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00")))
 		}
 		err = db.All(&adGroupReports, adGroupReportClauses...)
 		if err != nil {
 			return errors.Convert(err)
 		}
-	}
-	for _, adGroupReport := range adGroupReports {
-		if adGroupReport.OptStatus == models.Delete {
-			continue
-		}
-		// convert adReport to a map
-		reportValueMap := make(map[string]interface{})
-		err = errors.Convert(mapstructure.Decode(&adGroupReport.TiktokAdsReportCommon, &reportValueMap))
-		if err != nil {
-			return errors.Convert(err)
-		}
-		for rule, conditions := range ruleConditionMap {
+		for _, adGroupReport := range adGroupReports {
+			logger.Info(fmt.Sprintf("开始执行 adGroupReport: %s , 匹配ruleId %d ", adGroupReport.AdgroupName, rule.ID))
+			if adGroupReport.OptStatus == models.Delete {
+				continue
+			}
+			// convert adReport to a map
+			reportValueMap := make(map[string]interface{})
+			err = errors.Convert(mapstructure.Decode(&adGroupReport.TiktokAdsReportCommon, &reportValueMap))
+			if err != nil {
+				return errors.Convert(err)
+			}
+			reportValueMap["id"] = adGroupReport.AdgroupId
 			if rule.Operate == models.ENABLE && adGroupReport.OptStatus == models.Active {
 				continue
 			}
@@ -92,16 +98,17 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 			if rule.Operate == models.MODIFY && rule.FieldToRevise == "conversion_bid_price" && adGroupReport.BidStrategy != models.COST_CAP {
 				continue
 			}
-			if calculateRule(conditions, reportValueMap) {
+			if calculateRule(conditions, reportValueMap, taskCtx) {
+				logger.Info(fmt.Sprintf("adGroupReport: %s , 已经满足ruleId %d ，即将进行下一步操作 <%s>; 需要调整的字段<%s>; 原始值<%.2f>; 调整比例<%.2f>",
+					adGroupReport.AdgroupName, rule.ID, rule.Operate, rule.FieldToRevise, reportValueMap[rule.FieldToRevise], rule.ValueToRevise))
 				switch rule.Operate {
 				case models.ENABLE:
 					enableAdGroup = append(enableAdGroup, adGroupReport.AdgroupId)
 				case models.DISABLE:
 					disableAdGroup = append(disableAdGroup, adGroupReport.AdgroupId)
 				case models.MODIFY:
-					reviseAdGroupModify[rule] = append(reviseAdGroupModify[rule], *adGroupReport)
+					reviseAdGroupModify[*rule] = append(reviseAdGroupModify[*rule], *adGroupReport)
 				}
-
 			}
 		}
 	}

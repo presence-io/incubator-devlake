@@ -3,6 +3,7 @@ package models
 import "github.com/apache/incubator-devlake/core/models/common"
 
 type TiktokAdsReportCommon struct {
+	StatTimeDay                string  `json:"stat_time_day" gorm:"column:stat_time_day;primaryKey" mapstructure:"stat_time_day"`
 	AeoType                    string  `json:"aeo_type" gorm:"column:aeo_type" mapstructure:"aeo_type"`
 	AppPromotionType           string  `json:"app_promotion_type" gorm:"column:app_promotion_type" mapstructure:"app_promotion_type"`
 	Bid                        string  `json:"bid" gorm:"column:bid" mapstructure:"bid"`

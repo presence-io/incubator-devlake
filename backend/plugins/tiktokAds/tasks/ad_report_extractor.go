@@ -23,6 +23,7 @@ import (
 	"github.com/apache/incubator-devlake/core/plugin"
 	helper "github.com/apache/incubator-devlake/helpers/pluginhelper/api"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
+	"time"
 )
 
 var _ plugin.SubTaskEntryPoint = ExtractAdReport
@@ -35,6 +36,7 @@ func ExtractAdReport(taskCtx plugin.SubTaskContext) errors.Error {
 			Params: TiktokAdsApiParams{
 				ConnectionId: data.Options.ConnectionId,
 				AdvertiserId: data.Options.AdvertiserID,
+				StatTimeDate: time.Now().Format("2006-01-02 00:00:00"),
 			},
 			Table: RAW_AD_REPORT_TABLE,
 		},

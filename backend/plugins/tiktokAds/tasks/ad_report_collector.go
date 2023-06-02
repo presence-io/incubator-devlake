@@ -41,6 +41,7 @@ func CollectAdReport(taskCtx plugin.SubTaskContext) errors.Error {
 			Params: TiktokAdsApiParams{
 				ConnectionId: data.Options.ConnectionId,
 				AdvertiserId: data.Options.AdvertiserID,
+				StatTimeDate: time.Now().Format("2006-01-02 00:00:00"),
 			},
 			Table: RAW_AD_REPORT_TABLE,
 		},

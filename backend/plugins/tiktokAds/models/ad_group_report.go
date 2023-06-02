@@ -19,7 +19,6 @@ package models
 
 type TiktokAdsAdGroupReport struct {
 	ConnectionId uint64 `json:"connection_id" gorm:"column:connection_id;autoIncrement:false;primaryKey" mapstructure:"connection_id"`
-	StatTimeDay  string `json:"stat_time_day" gorm:"column:stat_time_day;primaryKey" mapstructure:"stat_time_day"`
 	AdgroupId    uint64 `json:"adgroup_id,string" gorm:"column:adgroup_id;primaryKey;autoIncrement:false" mapstructure:"adgroup_id"`
 	AdvertiserID string `json:"advertiser_id,omitempty" gorm:"column:advertiser_id;primaryKey" mapstructure:"advertiser_id,omitempty"`
 	AdgroupName  string `json:"adgroup_name" gorm:"column:adgroup_name" mapstructure:"adgroup_name"`

@@ -38,18 +38,20 @@ type TiktokAdsRule struct {
 }
 
 type TiktokAdsRuleCondition struct {
-	RuleID     uint64  `json:"rule_id" mapstructure:"rule_id"`
-	FieldName  string  `json:"field_name" mapstructure:"field_name"`
-	Operator   string  `json:"operator" mapstructure:"operator"`
-	FieldValue float64 `json:"field_value" mapstructure:"field_value"`
-	TimeRange  uint64  `json:"time_range" mapstructure:"time_range"`
-	IsEnable   bool    `json:"is_enable" mapstructure:"is_enable"`
+	RuleID            uint64  `json:"rule_id" mapstructure:"rule_id"`
+	FieldName         string  `json:"field_name" mapstructure:"field_name"`
+	FieldRelationName string  `json:"field_relation_name" mapstructure:"field_relation_name"`
+	Operator          string  `json:"operator" mapstructure:"operator"`
+	FieldValue        float64 `json:"field_value" mapstructure:"field_value"`
+	FieldRelationRate float64 `json:"field_relation_rate" mapstructure:"field_relation_rate"`
+	TimeRange         uint64  `json:"time_range" mapstructure:"time_range"`
+	IsEnable          bool    `json:"is_enable" mapstructure:"is_enable"`
 	common.Model
 }
 
 type TiktokAdsRuleRequest struct {
-	ConnectionId uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey;autoIncrement:false" mapstructure:"connection_id"`
-	common.Model
+	ConnectionId  uint64                    `json:"connection_id" gorm:"column:connection_id;primaryKey;autoIncrement:false" mapstructure:"connection_id"`
+	ID            uint64                    `json:"id" gorm:"column:id;primaryKey;autoIncrement:false" mapstructure:"id"`
 	Name          string                    `json:"name" gorm:"column:name" mapstructure:"name"`
 	CampaignId    uint64                    `json:"campaign_id" gorm:"column:campaign_id" mapstructure:"campaign_id"`
 	AdgroupId     uint64                    `json:"adgroup_id" gorm:"column:adgroup_id" mapstructure:"adgroup_id"`

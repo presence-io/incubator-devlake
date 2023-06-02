@@ -22,6 +22,7 @@ import (
 	"github.com/apache/incubator-devlake/helpers/pluginhelper/api"
 	"net/url"
 	"strconv"
+	"time"
 
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
@@ -39,6 +40,7 @@ func CollectAd(taskCtx plugin.SubTaskContext) errors.Error {
 			Params: TiktokAdsApiParams{
 				ConnectionId: data.Options.ConnectionId,
 				AdvertiserId: data.Options.AdvertiserID,
+				StatTimeDate: time.Now().Format("2006-01-02 00:00:00"),
 			},
 			Table: RAW_AD_TABLE,
 		},

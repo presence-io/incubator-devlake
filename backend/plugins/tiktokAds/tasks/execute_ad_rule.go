@@ -18,11 +18,13 @@ limitations under the License.
 package tasks
 
 import (
+	"fmt"
 	"github.com/apache/incubator-devlake/core/dal"
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
 	"github.com/mitchellh/mapstructure"
+	"strings"
 	"time"
 )
 
@@ -31,11 +33,13 @@ var _ plugin.SubTaskEntryPoint = ExecuteAdRules
 func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 	data := taskCtx.GetData().(*TiktokAdsTaskData)
 	db := taskCtx.GetDal()
+	logger := taskCtx.GetLogger()
 	now := time.Now() // 获取当前时间
 	rules := make([]*models.TiktokAdsRule, 0)
 	clauses := []dal.Clause{
 		dal.From(&models.TiktokAdsRule{}),
-		dal.Where("connection_id = ? and data_level = ? and status = ?", data.Options.ConnectionId, "ad", models.Active),
+		dal.Where("connection_id = ? and data_level = ? and status = ? and id in (?)",
+			data.Options.ConnectionId, "ad", models.Active, data.Options.RuleIds),
 	}
 	err := db.All(&rules, clauses...)
 	if err != nil {
@@ -44,6 +48,8 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 	ruleConditionMap := make(map[models.TiktokAdsRule][]*models.TiktokAdsRuleCondition)
 	enableAd := make([]uint64, 0)
 	disableAd := make([]uint64, 0)
+	adReports := make([]*models.TiktokAdsAdReport, 0)
+
 	for _, rule := range rules {
 		conditionClauses := []dal.Clause{
 			dal.From(&models.TiktokAdsRuleCondition{}),
@@ -55,50 +61,63 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 			return errors.Convert(err)
 		}
 		ruleConditionMap[*rule] = conditions
-	}
 
-	adReports := make([]*models.TiktokAdsAdReport, 0)
-	adReportClauses := []dal.Clause{
-		dal.From(&models.TiktokAdsAdReport{}),
-		dal.Where("connection_id = ? and stat_time_day = ?", data.Options.ConnectionId, now.Format("2006-01-02")),
-	}
-	err = db.All(&adReports, adReportClauses...)
-	if err != nil {
-		return errors.Convert(err)
-	}
-	for _, adReport := range adReports {
-		if adReport.OptStatus == models.Delete {
-			continue
+		adReportClauses := []dal.Clause{
+			dal.From(&models.TiktokAdsAdReport{}),
 		}
-		// convert adReport to a map
-		adReportValueMap := make(map[string]interface{})
-		err = errors.Convert(mapstructure.Decode(&adReport.TiktokAdsReportCommon, adReportValueMap))
+		if len(rule.AdIds) > 0 && rule.AdIds != "[]" {
+			adIds := strings.Split(rule.AdIds, "|")
+			adReportClauses = append(adReportClauses, dal.Where("connection_id = ? and stat_time_day = ? and ad_id in (?)", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00"), adIds))
+		} else if len(rule.AdGroupIds) > 0 && rule.AdGroupIds != "[]" {
+			adGroupIds := strings.Split(rule.AdGroupIds, "|")
+			adReportClauses = append(adReportClauses, dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id in (?)", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00"), adGroupIds))
+		} else {
+			adReportClauses = append(adReportClauses, dal.Where("connection_id = ? and stat_time_day = ?", data.Options.ConnectionId, now.Format("2006-01-02 00:00:00")))
+		}
+		err = db.All(&adReports, adReportClauses...)
 		if err != nil {
 			return errors.Convert(err)
 		}
-		for rule, conditions := range ruleConditionMap {
+		for _, adReport := range adReports {
+			logger.Info(fmt.Sprintf("开始执行 adReport: %s , 匹配ruleId %d ", adReport.AdName, rule.ID))
+			if adReport.OptStatus == models.Delete {
+				continue
+			}
+			// convert adReport to a map
+			reportValueMap := make(map[string]interface{})
+			err = errors.Convert(mapstructure.Decode(&adReport.TiktokAdsReportCommon, &reportValueMap))
+			if err != nil {
+				return errors.Convert(err)
+			}
 			if rule.Operate == models.ENABLE && adReport.OptStatus == models.Active {
 				continue
 			}
 			if rule.Operate == models.DISABLE && adReport.OptStatus == models.InActive {
 				continue
 			}
-			if calculateRule(conditions, adReportValueMap) {
+			// 如果bid strategy 不是 Cost Cap，就不能调整出价
+			if calculateRule(conditions, reportValueMap, taskCtx) {
+				if rule.Operate == models.ENABLE && adReport.OptStatus == models.Active {
+					continue
+				}
+				if rule.Operate == models.DISABLE && adReport.OptStatus == models.InActive {
+					continue
+				}
+				logger.Info(fmt.Sprintf("adReport: %s , 满足ruleId %d 进行下一步操作", adReport.AdName, rule.ID))
 				switch rule.Operate {
 				case models.ENABLE:
 					enableAd = append(enableAd, adReport.AdId)
 				case models.DISABLE:
 					disableAd = append(disableAd, adReport.AdId)
 				}
-
 			}
 		}
 	}
 	if len(enableAd) > 0 {
-		prepareUpdate("adgroup", enableAd, data, models.ENABLE)
+		prepareUpdate("ad", enableAd, data, models.ENABLE)
 	}
 	if len(disableAd) > 0 {
-		prepareUpdate("adgroup", disableAd, data, models.DISABLE)
+		prepareUpdate("ad", disableAd, data, models.DISABLE)
 	}
 	if err != nil {
 		return errors.Convert(err)
@@ -112,43 +131,4 @@ var ExecuteAdRulesMeta = plugin.SubTaskMeta{
 	EnabledByDefault: true,
 	Description:      "",
 	DomainTypes:      []string{},
-}
-
-func calculateRule(conditions []*models.TiktokAdsRuleCondition, reportValueMap map[string]interface{}) bool {
-	for _, condition := range conditions {
-		var float64Value float64
-		// 如果report里面不包含condition里面的字段，那么就直接返回false
-		if value, ok := reportValueMap[condition.FieldName]; !ok {
-			return false
-		} else {
-			if finalValue, ok := value.(float64); ok {
-				float64Value = finalValue
-			} else if intValue, ok := value.(int); ok {
-				float64Value = float64(intValue) // 将 int 转换为 float64
-			} else {
-				return false
-			}
-		}
-		switch condition.Operator {
-		case ">":
-			if float64Value > condition.FieldValue {
-				continue
-			} else {
-				return false
-			}
-		case "<":
-			if float64Value < condition.FieldValue {
-				continue
-			} else {
-				return false
-			}
-		case "=":
-			if float64Value == condition.FieldValue {
-				continue
-			} else {
-				return false
-			}
-		}
-	}
-	return true
 }

@@ -41,11 +41,12 @@ func CollectAdGroupReport(taskCtx plugin.SubTaskContext) errors.Error {
 			Params: TiktokAdsApiParams{
 				ConnectionId: data.Options.ConnectionId,
 				AdvertiserId: data.Options.AdvertiserID,
+				StatTimeDate: time.Now().Format("2006-01-02 00:00:00"),
 			},
 			Table: RAW_AD_GROUP_REPORT_TABLE,
 		},
 		ApiClient:     data.ApiClient,
-		Incremental:   false,
+		Incremental:   true,
 		UrlTemplate:   "v1.3/report/integrated/get/",
 		GetTotalPages: GetTotalPages,
 		PageSize:      50,
