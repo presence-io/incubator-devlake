@@ -20,6 +20,7 @@ package tasks
 import (
 	"encoding/json"
 	"fmt"
+	"github.com/apache/incubator-devlake/core/config"
 	"github.com/apache/incubator-devlake/core/dal"
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
@@ -80,11 +81,12 @@ func GetTotalPages(res *http.Response, args *api.ApiCollectorArgs) (int, errors.
 // recordIds: 记录ID列表
 // data: Tiktok广告任务数据
 // operate: 操作
-func prepareUpdate(recordType string, recordIds []uint64, data *TiktokAdsTaskData, operate string) {
+func prepareUpdate(recordType string, recordIds []uint64, taskCtx plugin.SubTaskContext, operate string) {
 	count := 0
 	recordsQuery := make([]string, 0)
 	length := len(recordIds)
 	idsFieldName := fmt.Sprintf("%s_ids", recordType)
+	data := taskCtx.GetData().(*TiktokAdsTaskData)
 
 	for _, recordId := range recordIds {
 		count++
@@ -96,7 +98,7 @@ func prepareUpdate(recordType string, recordIds []uint64, data *TiktokAdsTaskDat
 				idsFieldName:       recordsQuery,
 				"operation_status": operate,
 			}
-			updateStatus(recordType+"/status", payload, data.ApiClient)
+			updateStatus(recordType+"/status", payload, data.ApiClient, taskCtx)
 			recordsQuery = make([]string, 0)
 		}
 	}
@@ -105,7 +107,9 @@ func prepareUpdate(recordType string, recordIds []uint64, data *TiktokAdsTaskDat
 // modifyField 修改字段
 // modifyBudgetMap: 预算修改映射
 // data: Tiktok广告任务数据
-func modifyField(modifyBudgetMap map[models.TiktokAdsRule][]models.TiktokAdsAdGroupReport, data *TiktokAdsTaskData) {
+func modifyField(modifyBudgetMap map[models.TiktokAdsRule][]models.TiktokAdsAdGroupReport,
+	taskCtx plugin.SubTaskContext) {
+	data := taskCtx.GetData().(*TiktokAdsTaskData)
 	for rule, elems := range modifyBudgetMap {
 		for _, elem := range elems {
 			valueToRevise := 0.0
@@ -114,7 +118,6 @@ func modifyField(modifyBudgetMap map[models.TiktokAdsRule][]models.TiktokAdsAdGr
 				"advertiser_id": data.Options.AdvertiserID,
 				"adgroup_id":    strconv.FormatUint(elem.AdgroupId, 10),
 			}
-
 			switch rule.FieldToRevise {
 			case "budget":
 				valueToRevise = elem.Budget * rate
@@ -131,7 +134,7 @@ func modifyField(modifyBudgetMap map[models.TiktokAdsRule][]models.TiktokAdsAdGr
 			}
 
 			payload[rule.FieldToRevise] = fmt.Sprintf("%.2f", valueToRevise)
-			updateStatus("adgroup", payload, data.ApiClient)
+			updateStatus("adgroup", payload, data.ApiClient, taskCtx)
 		}
 	}
 }
@@ -140,7 +143,11 @@ func modifyField(modifyBudgetMap map[models.TiktokAdsRule][]models.TiktokAdsAdGr
 // recordType: 记录类型
 // payload: 请求负载数据
 // apiClient: API客户端
-func updateStatus(recordType string, payload map[string]interface{}, apiClient *api.ApiAsyncClient) {
+func updateStatus(recordType string, payload map[string]interface{},
+	apiClient *api.ApiAsyncClient,
+	taskCtx plugin.SubTaskContext) {
+	data := taskCtx.GetData().(*TiktokAdsTaskData)
+	db := taskCtx.GetDal()
 	url := fmt.Sprintf("https://ads.tiktok.com/open_api/v1.3/%s/update/", recordType)
 	res, err := apiClient.Post(url, nil, payload, nil)
 	if err != nil {
@@ -160,15 +167,73 @@ func updateStatus(recordType string, payload map[string]interface{}, apiClient *
 		fmt.Println(err1)
 	}
 	fmt.Println(err1)
+	modifyHistories := make([]*models.TiktokAdsModifyHistory, 0)
+	names := make([]string, 0)
 	if jsonBody["message"] == "OK" {
 		jsonBody["中文提示"] = "操作成功"
+		if v, ok := payload["operation_status"]; ok {
+			if recordType == "ad" {
+				err = db.All(&names, []dal.Clause{
+					dal.Select("ad_name"),
+					dal.Where("ad_id in (?)", payload["ad_ids"].([]string)),
+				}...,
+				)
+			} else {
+				err = db.All(&names, []dal.Clause{
+					dal.Select("adgroup_name"),
+					dal.Where("adgroup_id in (?)", payload["adgroup_ids"].([]string)),
+				}...,
+				)
+			}
+
+			for _, id := range payload["adgroup_ids"].([]string) {
+				modifyHistory := models.TiktokAdsModifyHistory{
+					ConnectionId: data.Options.ConnectionId,
+					AdvertiserID: data.Options.AdvertiserID,
+					StatTimeDay:  time.Now().Format("2006-01-02 00:00:00"),
+					//AdgroupId:    0,
+					//AdId:         0,
+					ModifyField:  "operation_status",
+					CurrentValue: v.(string),
+				}
+				if recordType == "adgroup" {
+					modifyHistory.AdgroupId, _ = strconv.ParseUint(id, 10, 64)
+				}
+				if recordType == "ad" {
+					modifyHistory.AdId, _ = strconv.ParseUint(id, 10, 64)
+				}
+				modifyHistories = append(modifyHistories, &modifyHistory)
+			}
+		} else {
+			id, _ := strconv.ParseUint(payload["adgroup_id"].(string), 10, 64)
+			fieldName := ""
+			for k, _ := range payload {
+				if k == "budget" || k == "conversion_bid_price" {
+					fieldName = k
+					break
+				}
+			}
+			modifyHistory := models.TiktokAdsModifyHistory{
+				AdvertiserID: data.Options.AdvertiserID,
+				StatTimeDay:  time.Now().Format("2006-01-02 00:00:00"),
+				AdgroupId:    id,
+				ModifyField:  fieldName,
+				CurrentValue: payload[fieldName].(string),
+			}
+			modifyHistories = append(modifyHistories, &modifyHistory)
+		}
+		err = db.Create(&modifyHistories)
+		if err != nil {
+			fmt.Println(err)
+		}
 	} else {
 		jsonBody["中文提示"] = "操作失败"
 	}
 
 	feishuPayload := map[string]interface{}{
-		"req": payload,
-		"res": jsonBody,
+		"req": fmt.Sprintf("已对 %v 进行 upate %s 操作， 操作字段 %s, 值变更为 %s %s",
+			names, recordType, payload["field_name"], payload["operation_status"], payload["field_value"]),
+		"res": jsonBody["中文提示"],
 	}
 	jsonPayload, err1 := json.Marshal(&feishuPayload)
 	if err1 != nil {
@@ -183,7 +248,9 @@ func updateStatus(recordType string, payload map[string]interface{}, apiClient *
 // err: 错误
 // apiClient: API客户端
 func feishuNotify(resMsg string, err error, apiClient *api.ApiAsyncClient) {
-	url := "https://open.feishu.cn/open-apis/bot/v2/hook/8676a3dd-f9f0-49d8-9ac4-6edfbc1b7fae"
+	// Check if AWS Cognito is enabled
+	v := config.GetConfig()
+	url := v.GetString("UG_BOT")
 	req := map[string]interface{}{
 		"msg_type": "text",
 		"content": map[string]string{
@@ -214,8 +281,8 @@ func calculateRule(conditions []*models.TiktokAdsRuleCondition, reportValueMap m
 	db := taskCtx.GetDal()
 	var float64Value float64
 	referValue := 0.0
-
 	for _, condition := range conditions {
+		tmpMap := reportValueMap
 		if condition.TimeRange != 0 {
 			today := reportValueMap["stat_time_day"].(string)
 			todayTime, err := time.Parse("2006-01-02 00:00:00", today)
@@ -242,12 +309,12 @@ func calculateRule(conditions []*models.TiktokAdsRuleCondition, reportValueMap m
 				if err != nil {
 					panic(err)
 				}
-				reportValueMap = compareReportValueMap
+				tmpMap = compareReportValueMap
 			}
 		}
 
 		// 如果报告中不包含条件中的字段，则直接返回 false
-		value, ok := reportValueMap[condition.FieldName]
+		value, ok := tmpMap[condition.FieldName]
 		if !ok {
 			panic(fmt.Sprintf("report does not contain %s", condition.FieldName))
 		}
@@ -255,7 +322,7 @@ func calculateRule(conditions []*models.TiktokAdsRuleCondition, reportValueMap m
 		float64Value = convertToFloat64(value)
 
 		if condition.FieldRelationName != "" && condition.FieldRelationRate != 0 {
-			value, ok := reportValueMap[condition.FieldRelationName]
+			value, ok := tmpMap[condition.FieldRelationName]
 			if !ok {
 				panic(fmt.Sprintf("in condition, %s has wrong value %f", condition.FieldRelationName, condition.FieldRelationRate))
 			}

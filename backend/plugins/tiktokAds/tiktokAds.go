@@ -81,7 +81,7 @@ func main() {
 		runner.DirectRun(cmd, args, PluginEntry, map[string]interface{}{
 			"connectionId": 1,
 			"advertiserId": "7232182199037034497",
-			"ruleIds":      []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9},
+			"ruleIds":      []uint64{8},
 			"adgroupIds": []string{"1766809950050305",
 				"1765899850498098",
 				"1766913850398753",

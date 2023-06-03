@@ -28,8 +28,6 @@ type addInitTables struct {
 }
 
 func (u *addInitTables) Up(basicRes context.BasicRes) errors.Error {
-	basicRes.GetDal().DropTables(&archived.TiktokAdsRule{},
-		&archived.TiktokAdsRuleCondition{})
 	return migrationhelper.AutoMigrateTables(
 		basicRes,
 		//archived.TiktokAdsConnection{},
@@ -41,11 +39,13 @@ func (u *addInitTables) Up(basicRes context.BasicRes) errors.Error {
 		&archived.TiktokAdsRuleCondition{},
 		&archived.TiktokAdsAdReport{},
 		&archived.TiktokAdsAdGroupReport{},
+		&archived.TiktokAdsNotifyHistory{},
+		&archived.TiktokAdsModifyHistory{},
 	)
 }
 
 func (*addInitTables) Version() uint64 {
-	return 20230528000020
+	return 20230528000022
 }
 
 func (*addInitTables) Name() string {

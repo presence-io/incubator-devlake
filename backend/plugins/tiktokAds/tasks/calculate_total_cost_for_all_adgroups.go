@@ -23,6 +23,7 @@ import (
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
+	"gorm.io/gorm"
 	"time"
 )
 
@@ -31,6 +32,17 @@ var _ plugin.SubTaskEntryPoint = CalculateTotalCostForAllAdgroups
 func CalculateTotalCostForAllAdgroups(taskCtx plugin.SubTaskContext) errors.Error {
 	data := taskCtx.GetData().(*TiktokAdsTaskData)
 	db := taskCtx.GetDal()
+	notify := &models.TiktokAdsNotifyHistory{}
+
+	err := db.First(notify, dal.Where("connection_id = ? and stat_time_day = ? and advertiser_id = ?",
+		data.Options.ConnectionId, time.Now().Format("2006-01-02 00:00:00"), data.Options.AdvertiserID))
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		return err
+	}
+	if notify.IsNotifyBudget {
+		return nil
+	}
+
 	adGroupReportClauses := []dal.Clause{
 		dal.Select("sum(spend) as total_cost"),
 		dal.From(&models.TiktokAdsAdGroupReport{}),
@@ -39,13 +51,21 @@ func CalculateTotalCostForAllAdgroups(taskCtx plugin.SubTaskContext) errors.Erro
 		data.Options.ConnectionId, time.Now().Format("2006-01-02 00:00:00"), data.Options.AdGroupIds))
 
 	total := 0.0
-	err := db.First(&total, adGroupReportClauses...)
+	err = db.First(&total, adGroupReportClauses...)
 	if err != nil {
 		return errors.Convert(err)
 	}
 	if total >= 500 {
 		resMsg := fmt.Sprintf("总花费超过500预警！！！: %f; <at user_id=\"all\">所有人</at>", total)
 		feishuNotify(resMsg, nil, data.ApiClient)
+		notify.IsNotifyBudget = true
+		notify.AdvertiserID = data.Options.AdvertiserID
+		notify.StatTimeDay = time.Now().Format("2006-01-02 00:00:00")
+		notify.ConnectionId = data.Options.ConnectionId
+		err = db.Create(notify)
+	}
+	if err != nil {
+		return err
 	}
 
 	return nil

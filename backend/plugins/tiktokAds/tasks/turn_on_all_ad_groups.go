@@ -38,7 +38,7 @@ func TurnOnAllAdGroups(taskCtx plugin.SubTaskContext) errors.Error {
 		enableAdGroup = append(enableAdGroup, uintValue)
 
 	}
-	prepareUpdate("adgroup", enableAdGroup, data, models.ENABLE)
+	prepareUpdate("adgroup", enableAdGroup, taskCtx, models.ENABLE)
 
 	return nil
 }

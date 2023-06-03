@@ -22,6 +22,7 @@ import (
 	"github.com/apache/incubator-devlake/core/dal"
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
+	"github.com/apache/incubator-devlake/plugins/tiktokAds/api"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
 	"github.com/mitchellh/mapstructure"
 	"strings"
@@ -77,7 +78,18 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 			return errors.Convert(err)
 		}
 		for _, adGroupReport := range adGroupReports {
-			logger.Info(fmt.Sprintf("开始执行 adGroupReport: %s , 匹配ruleId %d ", adGroupReport.AdgroupName, rule.ID))
+			modifyHistoryClauses := []dal.Clause{
+				dal.From(&models.TiktokAdsModifyHistory{}),
+				dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id = ? and modify_field in (?)",
+					data.Options.ConnectionId, now.Format("2006-01-02 00:00:00"), adGroupReport.AdgroupId, []string{"conversion_bid_price"}),
+			}
+			count, err := db.Count(modifyHistoryClauses...)
+			if err != nil {
+				return err
+			}
+			if count >= api.MaxModifyCount {
+				continue
+			}
 			if adGroupReport.OptStatus == models.Delete {
 				continue
 			}
@@ -113,13 +125,13 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 		}
 	}
 	if len(enableAdGroup) > 0 {
-		prepareUpdate("adgroup", enableAdGroup, data, models.ENABLE)
+		prepareUpdate("adgroup", enableAdGroup, taskCtx, models.ENABLE)
 	}
 	if len(disableAdGroup) > 0 {
-		prepareUpdate("adgroup", disableAdGroup, data, models.DISABLE)
+		prepareUpdate("adgroup", disableAdGroup, taskCtx, models.DISABLE)
 	}
 	if len(reviseAdGroupModify) > 0 {
-		modifyField(reviseAdGroupModify, data)
+		modifyField(reviseAdGroupModify, taskCtx)
 	}
 
 	if err != nil {

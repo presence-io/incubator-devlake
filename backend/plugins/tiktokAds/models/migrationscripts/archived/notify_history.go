@@ -15,30 +15,18 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-package api
+package archived
 
-import (
-	"github.com/apache/incubator-devlake/core/context"
-	"github.com/apache/incubator-devlake/helpers/pluginhelper/api"
-	"github.com/go-playground/validator/v10"
-)
+import "github.com/apache/incubator-devlake/core/models/migrationscripts/archived"
 
-var vld *validator.Validate
-var connectionHelper *api.ConnectionApiHelper
-var tiktokAdsRuleHelper *TiktokAdsRuleApiHelper
-var basicRes context.BasicRes
-var IsAlreadyNotifyBudget bool
-var MaxModifyCount int64 = 2
+type TiktokAdsNotifyHistory struct {
+	ConnectionId   uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey"`
+	AdvertiserID   string `gorm:"column:advertiser_id;primaryKey" json:"advertiser_id"`
+	StatTimeDay    string `gorm:"column:stat_time_day;primaryKey" json:"stat_time_day"`
+	IsNotifyBudget bool   `gorm:"column:is_notify_budget" json:"is_notify_budget"`
+	archived.NoPKModel
+}
 
-func Init(br context.BasicRes) {
-	basicRes = br
-	vld = validator.New()
-	connectionHelper = api.NewConnectionHelper(
-		basicRes,
-		vld,
-	)
-	tiktokAdsRuleHelper = NewTiktokAdsHelper(
-		basicRes,
-		vld,
-	)
+func (TiktokAdsNotifyHistory) TableName() string {
+	return "_tool_tiktokAds_notify_history"
 }

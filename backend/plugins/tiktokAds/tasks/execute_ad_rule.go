@@ -79,7 +79,6 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 			return errors.Convert(err)
 		}
 		for _, adReport := range adReports {
-			logger.Info(fmt.Sprintf("开始执行 adReport: %s , 匹配ruleId %d ", adReport.AdName, rule.ID))
 			if adReport.OptStatus == models.Delete {
 				continue
 			}
@@ -114,10 +113,10 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 		}
 	}
 	if len(enableAd) > 0 {
-		prepareUpdate("ad", enableAd, data, models.ENABLE)
+		prepareUpdate("ad", enableAd, taskCtx, models.ENABLE)
 	}
 	if len(disableAd) > 0 {
-		prepareUpdate("ad", disableAd, data, models.DISABLE)
+		prepareUpdate("ad", disableAd, taskCtx, models.DISABLE)
 	}
 	if err != nil {
 		return errors.Convert(err)
