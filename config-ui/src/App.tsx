@@ -16,24 +16,24 @@
  *
  */
 
-import { Switch, Route, Redirect, Router } from 'react-router-dom';
+import { Redirect, Route, Router, Switch } from 'react-router-dom';
 import { LoginPage } from './pages/login/login';
 import { history } from './utils/history';
-import { ErrorLayout, BaseLayout } from '@/layouts';
-import { FromEnum } from '@/pages';
+import { BaseLayout, ErrorLayout } from '@/layouts';
 import {
-  OfflinePage,
-  DBMigratePage,
-  ProjectHomePage,
-  ProjectDetailPage,
-  ConnectionHomePage,
-  ConnectionListPage,
-  ConnectionFormPage,
-  BlueprintHomePage,
-  BlueprintCreatePage,
-  BlueprintDetailPage,
   BlueprintConnectioAddPage,
   BlueprintConnectionDetailPage,
+  BlueprintCreatePage,
+  BlueprintDetailPage,
+  BlueprintHomePage,
+  ConnectionFormPage,
+  ConnectionHomePage,
+  ConnectionListPage,
+  DBMigratePage,
+  FromEnum,
+  OfflinePage,
+  ProjectDetailPage,
+  ProjectHomePage,
 } from '@/pages';
 
 function App() {

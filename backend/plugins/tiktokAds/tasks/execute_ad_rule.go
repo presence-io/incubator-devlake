@@ -79,6 +79,7 @@ func ExecuteAdRules(taskCtx plugin.SubTaskContext) errors.Error {
 			return errors.Convert(err)
 		}
 		for _, adReport := range adReports {
+			logger.Info(fmt.Sprintf("开始执行 ad : %s , 匹配ruleId %d ", adReport.AdName, rule.ID))
 			if adReport.OptStatus == models.Delete {
 				continue
 			}

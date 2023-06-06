@@ -20,12 +20,13 @@ package archived
 import "github.com/apache/incubator-devlake/core/models/migrationscripts/archived"
 
 type TiktokAdsModifyHistory struct {
-	ConnectionId uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey"`
+	ID           uint64 `gorm:"primaryKey"`
+	ConnectionId uint64 `json:"connection_id" gorm:"column:connection_id;primaryKey;autoIncrement:false"`
 	AdvertiserID string `gorm:"column:advertiser_id" json:"advertiser_id"`
-	StatTimeDay  string `gorm:"column:stat_time_day;primaryKey" json:"stat_time_day"`
-	AdgroupId    uint64 `gorm:"column:adgroup_id;primaryKey" json:"adgroup_id"`
-	AdId         uint64 `gorm:"column:ad_id;primaryKey" json:"ad_id"`
-	ModifyField  string `gorm:"column:modify_field;primaryKey" json:"modify_field"`
+	StatTimeDay  string `gorm:"column:stat_time_day;index" json:"stat_time_day"`
+	AdgroupId    uint64 `gorm:"column:adgroup_id;index" json:"adgroup_id"`
+	AdId         uint64 `gorm:"column:ad_id;index" json:"ad_id"`
+	ModifyField  string `gorm:"column:modify_field;index" json:"modify_field"`
 	CurrentValue string `gorm:"column:current_value" json:"current_value"`
 	archived.NoPKModel
 }

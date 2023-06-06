@@ -110,7 +110,10 @@ export const TapdTransformation = ({ connectionId, scopeId, transformation, setT
     setBugTypeList(typeList.filter((it) => it.value === StandardType.Bug).map((it) => it.key));
     setIncidentTypeList(typeList.filter((it) => it.value === StandardType.Incident).map((it) => it.key));
 
-    const statusList = Object.entries(transformation.statusMappings ?? {}).map(([key, value]: any) => ({ key, value }));
+    const statusList = Object.entries(transformation.statusMappings ?? {}).map(([key, value]: any) => ({
+      key,
+      value,
+    }));
     setTodoStatusList(statusList.filter((it) => it.value === StandardStatus.Todo).map((it) => it.key));
     setInProgressStatusList(statusList.filter((it) => it.value === StandardStatus.InProgress).map((it) => it.key));
     setDoneStatusList(statusList.filter((it) => it.value === StandardStatus.Done).map((it) => it.key));

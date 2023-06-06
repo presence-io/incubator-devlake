@@ -18,13 +18,13 @@
 
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { InputGroup, Icon, Button, Intent } from '@blueprintjs/core';
+import { Button, Icon, InputGroup, Intent } from '@blueprintjs/core';
 
-import { Card, Divider, MultiSelector, Loading } from '@/components';
+import { Card, Divider, Loading, MultiSelector } from '@/components';
 import { getPluginConfig } from '@/plugins';
-import { useConnection, ConnectionStatusEnum } from '@/store';
+import { ConnectionStatusEnum, useConnection } from '@/store';
 
-import { ModeEnum, FromEnum } from '../../types';
+import { FromEnum, ModeEnum } from '../../types';
 import { AdvancedEditor } from '../../components';
 import { validRawPlan } from '../../utils';
 

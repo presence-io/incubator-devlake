@@ -18,7 +18,7 @@
 
 import React from 'react';
 import { useHistory } from 'react-router-dom';
-import { Icon, ButtonGroup, Button, Intent, Colors } from '@blueprintjs/core';
+import { Button, ButtonGroup, Colors, Icon, Intent } from '@blueprintjs/core';
 
 import { Card } from '@/components';
 

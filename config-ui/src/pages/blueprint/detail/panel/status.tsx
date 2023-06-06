@@ -21,7 +21,7 @@ import { Button, Intent } from '@blueprintjs/core';
 
 import { getCron } from '@/config';
 import { Card } from '@/components';
-import { PipelineContextProvider, PipelineInfo, PipelineTasks, PipelineHistorical } from '@/pages';
+import { PipelineContextProvider, PipelineHistorical, PipelineInfo, PipelineTasks } from '@/pages';
 import { formatTime } from '@/utils';
 
 import type { BlueprintType } from '../../types';

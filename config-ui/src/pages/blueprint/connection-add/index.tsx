@@ -21,7 +21,7 @@ import { useParams } from 'react-router-dom';
 import { PageHeader, Workflow } from '@/components';
 
 import { Step1, Step2, Step3 } from './components';
-import { ContextProvider, Context } from './context';
+import { Context, ContextProvider } from './context';
 
 export const BlueprintConnectioAddPage = () => {
   const { pname, bid } = useParams<{ pname?: string; bid: string }>();

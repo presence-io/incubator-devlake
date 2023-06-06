@@ -18,7 +18,7 @@
 
 import React, { useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Tag, Intent } from '@blueprintjs/core';
+import { Intent, Tag } from '@blueprintjs/core';
 
 import { PluginConfig, PluginType } from '@/plugins';
 

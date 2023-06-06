@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { FormGroup, InputGroup, Button, Intent } from '@blueprintjs/core';
+import { Button, FormGroup, InputGroup, Intent } from '@blueprintjs/core';
 
 import { ExternalLink } from '@/components';
 

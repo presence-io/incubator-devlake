@@ -22,9 +22,9 @@ import { useParams } from 'react-router-dom';
 import { PageHeader, Workflow } from '@/components';
 import { ConnectionContextProvider } from '@/store';
 
-import { ModeEnum, FromEnum } from '../types';
+import { FromEnum, ModeEnum } from '../types';
 
-import { ContextProvider, Context } from './context';
+import { Context, ContextProvider } from './context';
 import { Step1, Step2, Step3, Step4 } from './components';
 
 interface Props {

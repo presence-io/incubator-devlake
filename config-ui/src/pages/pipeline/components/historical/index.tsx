@@ -16,14 +16,14 @@
  *
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { ButtonGroup } from '@blueprintjs/core';
 import { pick } from 'lodash';
 import { saveAs } from 'file-saver';
 
 import { DEVLAKE_ENDPOINT } from '@/config';
 import type { ColumnType } from '@/components';
-import { Card, Loading, Table, Inspector, Dialog, IconButton } from '@/components';
+import { Card, Dialog, IconButton, Inspector, Loading, Table } from '@/components';
 import { useAutoRefresh } from '@/hooks';
 import { formatTime } from '@/utils';
 

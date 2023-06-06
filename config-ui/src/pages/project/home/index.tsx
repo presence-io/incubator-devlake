@@ -18,9 +18,9 @@
 
 import React, { useMemo, useState } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { Button, InputGroup, Checkbox, Intent } from '@blueprintjs/core';
+import { Button, Checkbox, InputGroup, Intent } from '@blueprintjs/core';
 
-import { PageHeader, Table, ColumnType, Dialog, IconButton } from '@/components';
+import { ColumnType, Dialog, IconButton, PageHeader, Table } from '@/components';
 
 import { useProject } from './use-project';
 import * as S from './styled';

@@ -31,6 +31,7 @@ import (
 	"io"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -169,18 +170,21 @@ func updateStatus(recordType string, payload map[string]interface{},
 	fmt.Println(err1)
 	modifyHistories := make([]*models.TiktokAdsModifyHistory, 0)
 	names := make([]string, 0)
+	fieldName := ""
 	if jsonBody["message"] == "OK" {
 		jsonBody["中文提示"] = "操作成功"
 		if v, ok := payload["operation_status"]; ok {
-			if recordType == "ad" {
+			if recordType == "ad/status" {
 				err = db.All(&names, []dal.Clause{
 					dal.Select("ad_name"),
+					dal.From(&models.TiktokAdsAd{}),
 					dal.Where("ad_id in (?)", payload["ad_ids"].([]string)),
 				}...,
 				)
 			} else {
 				err = db.All(&names, []dal.Clause{
 					dal.Select("adgroup_name"),
+					dal.From(&models.TiktokAdsAdGroup{}),
 					dal.Where("adgroup_id in (?)", payload["adgroup_ids"].([]string)),
 				}...,
 				)
@@ -206,7 +210,12 @@ func updateStatus(recordType string, payload map[string]interface{},
 			}
 		} else {
 			id, _ := strconv.ParseUint(payload["adgroup_id"].(string), 10, 64)
-			fieldName := ""
+			err = db.All(&names, []dal.Clause{
+				dal.Select("adgroup_name"),
+				dal.From(&models.TiktokAdsAdGroup{}),
+				dal.Where("adgroup_id = ?", id),
+			}...,
+			)
 			for k, _ := range payload {
 				if k == "budget" || k == "conversion_bid_price" {
 					fieldName = k
@@ -214,6 +223,7 @@ func updateStatus(recordType string, payload map[string]interface{},
 				}
 			}
 			modifyHistory := models.TiktokAdsModifyHistory{
+				ConnectionId: data.Options.ConnectionId,
 				AdvertiserID: data.Options.AdvertiserID,
 				StatTimeDay:  time.Now().Format("2006-01-02 00:00:00"),
 				AdgroupId:    id,
@@ -229,10 +239,17 @@ func updateStatus(recordType string, payload map[string]interface{},
 	} else {
 		jsonBody["中文提示"] = "操作失败"
 	}
+	fieldValue := ""
+	if v, ok := payload[fieldName]; ok {
+		fieldValue = v.(string)
+	} else {
+		fieldValue = payload["operation_status"].(string)
+		fieldName = "operation_status`"
+	}
 
 	feishuPayload := map[string]interface{}{
-		"req": fmt.Sprintf("已对 %v 进行 upate %s 操作， 操作字段 %s, 值变更为 %s %s",
-			names, recordType, payload["field_name"], payload["operation_status"], payload["field_value"]),
+		"req": fmt.Sprintf("已对 %v 进行 upate %s 操作， 操作字段 %s, 值变更为 %s",
+			strings.Join(names, "|"), recordType, fieldName, fieldValue),
 		"res": jsonBody["中文提示"],
 	}
 	jsonPayload, err1 := json.Marshal(&feishuPayload)

@@ -46,7 +46,7 @@ func CollectAdGroupReport(taskCtx plugin.SubTaskContext) errors.Error {
 			Table: RAW_AD_GROUP_REPORT_TABLE,
 		},
 		ApiClient:     data.ApiClient,
-		Incremental:   true,
+		Incremental:   false,
 		UrlTemplate:   "v1.3/report/integrated/get/",
 		GetTotalPages: GetTotalPages,
 		PageSize:      50,

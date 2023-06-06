@@ -22,7 +22,7 @@ import type { PluginConfigType } from '@/plugins';
 import { PluginType } from '@/plugins';
 
 import Icon from './assets/icon.svg';
-import { Token, Graphql } from './connection-fields';
+import { Graphql, Token } from './connection-fields';
 
 export const GitHubConfig: PluginConfigType = {
   type: PluginType.Connection,

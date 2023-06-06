@@ -16,7 +16,7 @@
  *
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 
 import { toast } from '@/components';

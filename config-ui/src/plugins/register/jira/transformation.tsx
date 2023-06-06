@@ -16,12 +16,12 @@
  *
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
-import { FormGroup, InputGroup, Tag, Icon, Intent } from '@blueprintjs/core';
+import React, { useEffect, useMemo, useState } from 'react';
+import { FormGroup, Icon, InputGroup, Intent, Tag } from '@blueprintjs/core';
 import { Popover2 } from '@blueprintjs/popover2';
 import { uniqWith } from 'lodash';
 
-import { PageLoading, HelpTooltip, ExternalLink, MultiSelector, Selector, Divider } from '@/components';
+import { Divider, ExternalLink, HelpTooltip, MultiSelector, PageLoading, Selector } from '@/components';
 import { useProxyPrefix, useRefreshData } from '@/hooks';
 
 import * as API from './api';

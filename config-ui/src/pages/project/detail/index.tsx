@@ -16,9 +16,9 @@
  *
  */
 
-import { useState, useEffect } from 'react';
-import { useParams, useLocation, useHistory } from 'react-router-dom';
-import { Tabs, Tab } from '@blueprintjs/core';
+import { useEffect, useState } from 'react';
+import { useHistory, useLocation, useParams } from 'react-router-dom';
+import { Tab, Tabs } from '@blueprintjs/core';
 
 import { PageHeader, PageLoading } from '@/components';
 

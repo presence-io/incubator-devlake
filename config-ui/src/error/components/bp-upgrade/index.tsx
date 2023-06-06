@@ -17,7 +17,7 @@
  */
 
 import React from 'react';
-import { Icon, ButtonGroup, Button, Colors, Intent } from '@blueprintjs/core';
+import { Button, ButtonGroup, Colors, Icon, Intent } from '@blueprintjs/core';
 
 import { Card } from '@/components';
 

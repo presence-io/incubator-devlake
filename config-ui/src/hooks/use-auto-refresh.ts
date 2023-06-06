@@ -16,7 +16,7 @@
  *
  */
 
-import { useState, useEffect, useMemo, useRef } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 
 export const useAutoRefresh = <T>(
   request: () => Promise<T>,

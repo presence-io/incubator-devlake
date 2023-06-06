@@ -16,15 +16,15 @@
  *
  */
 
-import React, { useState, useEffect } from 'react';
-import type { McsID, McsItem, McsColumn } from 'miller-columns-select';
+import React, { useEffect, useState } from 'react';
+import type { McsColumn, McsID, McsItem } from 'miller-columns-select';
 import MillerColumnsSelect from 'miller-columns-select';
 
 import { Loading } from '@/components';
 
 import type { ScopeItemType } from '../../types';
 
-import type { UseMillerColumnsProps, ExtraType } from './use-miller-columns';
+import type { ExtraType, UseMillerColumnsProps } from './use-miller-columns';
 import { useMillerColumns } from './use-miller-columns';
 import * as S from './styled';
 

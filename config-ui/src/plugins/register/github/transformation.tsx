@@ -16,10 +16,10 @@
  *
  */
 
-import React, { useState, useEffect } from 'react';
-import { FormGroup, InputGroup, TextArea, Tag, Switch, Icon, Intent, Colors } from '@blueprintjs/core';
+import React, { useEffect, useState } from 'react';
+import { Colors, FormGroup, Icon, InputGroup, Intent, Switch, Tag, TextArea } from '@blueprintjs/core';
 
-import { ExternalLink, HelpTooltip, Divider } from '@/components';
+import { Divider, ExternalLink, HelpTooltip } from '@/components';
 
 import * as S from './styled';
 
@@ -201,7 +201,7 @@ export const GitHubTransformation = ({ transformation, setTransformation }: Prop
                 Learn more
               </ExternalLink>
             </p>
-            <div style={{ marginTop: 16 }}>Convert a GitHub Workflow run as a DevLake Deployment when: </div>
+            <div style={{ marginTop: 16 }}>Convert a GitHub Workflow run as a DevLake Deployment when:</div>
             <div className="text">
               <span>
                 The name of the <strong>GitHub workflow run</strong> or <strong>one of its jobs</strong> matches

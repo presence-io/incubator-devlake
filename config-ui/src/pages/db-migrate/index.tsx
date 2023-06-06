@@ -17,7 +17,7 @@
  */
 
 import { useState } from 'react';
-import { Icon, ButtonGroup, Button, Colors, Intent } from '@blueprintjs/core';
+import { Button, ButtonGroup, Colors, Icon, Intent } from '@blueprintjs/core';
 import { useHistory } from 'react-router-dom';
 
 import { Card } from '@/components';

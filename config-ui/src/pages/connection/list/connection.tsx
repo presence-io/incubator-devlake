@@ -16,14 +16,14 @@
  *
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { ButtonGroup, Button, Intent, Position } from '@blueprintjs/core';
+import { Button, ButtonGroup, Intent, Position } from '@blueprintjs/core';
 import { Popover2 } from '@blueprintjs/popover2';
 
-import { Table, ColumnType, IconButton } from '@/components';
+import { ColumnType, IconButton, Table } from '@/components';
 import type { ConnectionItemType } from '@/store';
-import { useConnection, ConnectionStatus } from '@/store';
+import { ConnectionStatus, useConnection } from '@/store';
 import { operator } from '@/utils';
 
 import * as API from './api';

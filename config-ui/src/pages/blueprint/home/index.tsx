@@ -18,9 +18,9 @@
 
 import React, { useMemo } from 'react';
 import { Link, useHistory } from 'react-router-dom';
-import { ButtonGroup, Button, Tag, Intent } from '@blueprintjs/core';
+import { Button, ButtonGroup, Intent, Tag } from '@blueprintjs/core';
 
-import { PageLoading, PageHeader, Table, ColumnType, IconButton, TextTooltip } from '@/components';
+import { ColumnType, IconButton, PageHeader, PageLoading, Table, TextTooltip } from '@/components';
 import { getCron, getCronOptions } from '@/config';
 import { formatTime } from '@/utils';
 

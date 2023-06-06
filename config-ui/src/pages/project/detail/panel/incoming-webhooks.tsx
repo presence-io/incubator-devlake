@@ -16,12 +16,12 @@
  *
  */
 
-import { useState, useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, Intent } from '@blueprintjs/core';
 
 import { Alert, NoData } from '@/components';
 import type { WebhookItemType } from '@/plugins/register/webook';
-import { WebhookCreateDialog, WebhookSelectorDialog, WebHookConnection } from '@/plugins/register/webook';
+import { WebHookConnection, WebhookCreateDialog, WebhookSelectorDialog } from '@/plugins/register/webook';
 
 import type { ProjectType } from '../types';
 

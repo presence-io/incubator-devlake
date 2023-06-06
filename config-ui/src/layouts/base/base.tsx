@@ -18,9 +18,9 @@
 
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { Menu, MenuItem, Tag, Navbar, Intent, Alignment, Button } from '@blueprintjs/core';
+import { Alignment, Button, Intent, Menu, MenuItem, Navbar, Tag } from '@blueprintjs/core';
 
-import { PageLoading, Logo, ExternalLink } from '@/components';
+import { ExternalLink, Logo, PageLoading } from '@/components';
 import { useRefreshData } from '@/hooks';
 import { history } from '@/utils/history';
 
@@ -30,7 +30,7 @@ import APIIcon from '@/images/icons/api.svg';
 import GitHubIcon from '@/images/icons/github.svg';
 import SlackIcon from '@/images/icons/slack.svg';
 
-import { useMenu, MenuItemType } from './use-menu';
+import { MenuItemType, useMenu } from './use-menu';
 import * as API from './api';
 import * as S from './styled';
 

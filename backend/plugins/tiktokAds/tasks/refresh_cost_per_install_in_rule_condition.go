@@ -23,47 +23,33 @@ import (
 	"github.com/apache/incubator-devlake/core/errors"
 	"github.com/apache/incubator-devlake/core/plugin"
 	"github.com/apache/incubator-devlake/plugins/tiktokAds/models"
-	"gorm.io/gorm"
 	"time"
 )
 
-var _ plugin.SubTaskEntryPoint = CalculateTotalCostForAllAdgroups
+var _ plugin.SubTaskEntryPoint = RefreshCostPerInstall
 
-func CalculateTotalCostForAllAdgroups(taskCtx plugin.SubTaskContext) errors.Error {
+func RefreshCostPerInstall(taskCtx plugin.SubTaskContext) errors.Error {
 	data := taskCtx.GetData().(*TiktokAdsTaskData)
 	db := taskCtx.GetDal()
-	notify := &models.TiktokAdsNotifyHistory{}
-
-	err := db.First(notify, dal.Where("connection_id = ? and stat_time_day = ? and advertiser_id = ?",
-		data.Options.ConnectionId, time.Now().Format("2006-01-02 00:00:00"), data.Options.AdvertiserID))
-	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
-		return err
-	}
-	if notify.IsNotifyBudget {
-		return nil
-	}
 
 	adGroupReportClauses := []dal.Clause{
-		dal.Select("sum(spend) as total_cost"),
+		dal.Select("sum(spend) / sum(onsite_download_start) as avg_cost"),
 		dal.From(&models.TiktokAdsAdGroupReport{}),
 	}
 	adGroupReportClauses = append(adGroupReportClauses, dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id in (?)",
 		data.Options.ConnectionId, time.Now().Format("2006-01-02 00:00:00"), data.Options.AdGroupIds))
 
-	total := 0.0
-	err = db.First(&total, adGroupReportClauses...)
+	avg := 0.0
+	err := db.First(&avg, adGroupReportClauses...)
 	if err != nil {
 		return errors.Convert(err)
 	}
-	if total >= 500 {
-		resMsg := fmt.Sprintf("总花费超过500预警！！！: %f; <at user_id=\"all\">所有人</at>", total)
-		feishuNotify(resMsg, nil, data.ApiClient)
-		notify.IsNotifyBudget = true
-		notify.AdvertiserID = data.Options.AdvertiserID
-		notify.StatTimeDay = time.Now().Format("2006-01-02 00:00:00")
-		notify.ConnectionId = data.Options.ConnectionId
-		err = db.Create(notify)
+
+	updateClauses := []dal.Clause{
+		dal.Where("field_name = ? and rule_id in (?)",
+			"cost_per_onsite_download_start", []uint64{1, 2, 3, 4, 5, 6, 7, 8, 9}),
 	}
+	err = db.UpdateColumn(&models.TiktokAdsRuleCondition{}, "field_value", fmt.Sprintf("%.2f", avg+0.02), updateClauses...)
 	if err != nil {
 		return err
 	}
@@ -71,9 +57,9 @@ func CalculateTotalCostForAllAdgroups(taskCtx plugin.SubTaskContext) errors.Erro
 	return nil
 }
 
-var CalculateTotalCostForAllAdgroupsMeta = plugin.SubTaskMeta{
-	Name:             "CalculateTotalCostForAllAdgroups",
-	EntryPoint:       CalculateTotalCostForAllAdgroups,
+var RefreshCostPerInstallMeta = plugin.SubTaskMeta{
+	Name:             "RefreshCostPerInstall",
+	EntryPoint:       RefreshCostPerInstall,
 	EnabledByDefault: true,
 	Description:      "",
 	DomainTypes:      []string{},

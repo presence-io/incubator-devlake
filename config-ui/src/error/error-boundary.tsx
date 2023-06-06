@@ -21,7 +21,7 @@ import React from 'react';
 import { Logo } from '@/components';
 
 import { Error } from './types';
-import { Default, BPUpgrade } from './components';
+import { BPUpgrade, Default } from './components';
 
 import * as S from './styled';
 

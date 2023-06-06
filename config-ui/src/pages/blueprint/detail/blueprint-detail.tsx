@@ -16,9 +16,9 @@
  *
  */
 
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { TabId } from '@blueprintjs/core';
-import { Tabs, Tab } from '@blueprintjs/core';
+import { Tab, Tabs } from '@blueprintjs/core';
 
 import { PageLoading } from '@/components';
 

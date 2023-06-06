@@ -17,7 +17,7 @@
  */
 
 import React, { useEffect, useState } from 'react';
-import { InputGroup, Checkbox, ButtonGroup, Button, Intent } from '@blueprintjs/core';
+import { Button, ButtonGroup, Checkbox, InputGroup, Intent } from '@blueprintjs/core';
 
 import { Card } from '@/components';
 

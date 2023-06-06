@@ -16,8 +16,8 @@
  *
  */
 
-import React, { useState, useEffect } from 'react';
-import { Tag, Switch, InputGroup, Intent } from '@blueprintjs/core';
+import React, { useEffect, useState } from 'react';
+import { InputGroup, Intent, Switch, Tag } from '@blueprintjs/core';
 
 import { ExternalLink, HelpTooltip } from '@/components';
 
@@ -73,7 +73,7 @@ export const AzureTransformation = ({ transformation, setTransformation }: Props
                 Learn more
               </ExternalLink>
             </p>
-            <div style={{ marginTop: 16 }}>Convert a Azure Pipeline Run as a DevLake Deployment when: </div>
+            <div style={{ marginTop: 16 }}>Convert a Azure Pipeline Run as a DevLake Deployment when:</div>
             <div className="text">
               <span>
                 The name of the <strong>Azure pipeline</strong> or <strong>one of its jobs</strong> matches

@@ -18,7 +18,7 @@
 
 import { useMemo } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Icon, Tag, ButtonGroup, Button, Intent, Colors, IconName } from '@blueprintjs/core';
+import { Button, ButtonGroup, Colors, Icon, IconName, Intent, Tag } from '@blueprintjs/core';
 
 import { DEVLAKE_ENDPOINT } from '@/config';
 import { Card } from '@/components';

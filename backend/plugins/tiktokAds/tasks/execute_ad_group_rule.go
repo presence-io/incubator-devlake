@@ -78,6 +78,7 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 			return errors.Convert(err)
 		}
 		for _, adGroupReport := range adGroupReports {
+
 			modifyHistoryClauses := []dal.Clause{
 				dal.From(&models.TiktokAdsModifyHistory{}),
 				dal.Where("connection_id = ? and stat_time_day = ? and adgroup_id = ? and modify_field in (?)",
@@ -90,6 +91,7 @@ func ExecuteAdGroupRules(taskCtx plugin.SubTaskContext) errors.Error {
 			if count >= api.MaxModifyCount {
 				continue
 			}
+			logger.Info(fmt.Sprintf("开始执行 adGroupReport: %s , 匹配ruleId %d ", adGroupReport.AdgroupName, rule.ID))
 			if adGroupReport.OptStatus == models.Delete {
 				continue
 			}

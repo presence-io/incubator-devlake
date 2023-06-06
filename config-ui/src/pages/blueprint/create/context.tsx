@@ -16,13 +16,13 @@
  *
  */
 
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useContext, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import dayjs from 'dayjs';
 
-import { operator, formatTime } from '@/utils';
+import { formatTime, operator } from '@/utils';
 
-import { ModeEnum, FromEnum } from '../types';
+import { FromEnum, ModeEnum } from '../types';
 import { validRawPlan } from '../utils';
 
 import type { ContextType } from './types';

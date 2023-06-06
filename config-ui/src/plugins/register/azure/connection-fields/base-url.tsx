@@ -17,7 +17,7 @@
  */
 
 import React from 'react';
-import { FormGroup, RadioGroup, Radio } from '@blueprintjs/core';
+import { FormGroup, Radio, RadioGroup } from '@blueprintjs/core';
 
 import * as S from './styled';
 

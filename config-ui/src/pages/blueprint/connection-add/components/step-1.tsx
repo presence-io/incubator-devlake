@@ -21,7 +21,7 @@ import { Button, Intent } from '@blueprintjs/core';
 import { Table } from '@/components';
 import { getPluginConfig } from '@/plugins';
 import type { ConnectionItemType } from '@/store';
-import { ConnectionContextProvider, ConnectionContextConsumer } from '@/store';
+import { ConnectionContextConsumer, ConnectionContextProvider } from '@/store';
 
 import { useConnectionAdd } from '../context';
 

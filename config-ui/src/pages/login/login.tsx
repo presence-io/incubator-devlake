@@ -18,7 +18,7 @@
 
 import { useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { FormGroup, InputGroup, Button, Intent } from '@blueprintjs/core';
+import { Button, FormGroup, InputGroup, Intent } from '@blueprintjs/core';
 
 import { operator } from '@/utils';
 

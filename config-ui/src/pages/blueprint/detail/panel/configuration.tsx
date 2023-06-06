@@ -16,9 +16,9 @@
  *
  */
 
-import { useState, useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useHistory } from 'react-router-dom';
-import { Icon, Button, Switch, Colors, Intent } from '@blueprintjs/core';
+import { Button, Colors, Icon, Intent, Switch } from '@blueprintjs/core';
 import dayjs from 'dayjs';
 
 import { getCron } from '@/config';
@@ -28,7 +28,7 @@ import { ModeEnum } from '../../types';
 import { validRawPlan } from '../../utils';
 import { AdvancedEditor } from '../../components';
 
-import { UpdateNameDialog, UpdatePolicyDialog, ConnectionList } from '../components';
+import { ConnectionList, UpdateNameDialog, UpdatePolicyDialog } from '../components';
 import * as S from '../styled';
 
 type Type = 'name' | 'frequency' | 'scope' | 'transformation';
